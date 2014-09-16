@@ -14,7 +14,10 @@ Track team kill statistics and allow self-management of team killers.
 
 ## Install
 
-Add the plugin file `TeamKillTracker.cs` to your Procon layer under `Plugins\BF4` and restart your layer. This plugin _may_ work for other games, but has only been tested against BF4.
+0. Download and extract the latest release: https://github.com/stajs/Stajs.Procon.TeamKillTracker/releases.
+1. Move the plugin file `TeamKillTracker.cs` to your Procon layer under `Plugins\BF4` and restart your layer.
+
+This plugin _may_ work for other games, but has only been tested against BF4.
 
 ## Settings
 
