@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "1.0.0";
+		public const string Version = "2.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -29,11 +29,8 @@ namespace PRoConEvents
 		{
 			public const string PunishCommand = "Punish";
 			public const string ForgiveCommand = "Forgive";
-			public const string TeamKillMessage = "Team kill";
-			public const string KickCountdownMessage = "Kick countdown";
-			public const string KickImminentMessage = "Kick imminent";
-			public const string VictimPromptMessage = "Victim prompt";
-			public const string ShowVictimStats = "Show victim stats?";
+			public const string KillerMessages = "Killer";
+			public const string VictimMessages = "Victim";
 			public const string NoOneToPunishMessage = "No one to punish";
 			public const string NoOneToForgiveMessage = "No one to forgive";
 			public const string PunishedMessage = "Punished";
@@ -45,15 +42,36 @@ namespace PRoConEvents
 			public const string Whitelist = "Whitelist";
 		}
 
+		private class Stats
+		{
+			public int TeamKillsOnTeamCount { get; set; }
+			public int TeamKillsOnVictimCount { get; set; }
+			public int VictimPunishedKillerCount { get; set; }
+			public int VictimForgivenKillerCount { get; set; }
+			public int VictimAutoForgivenKillerCount { get; set; }
+		}
+
 		private static readonly Dictionary<string, object> Defaults = new Dictionary<string, object>
 		{
 			{ VariableName.PunishCommand, "!p"},
 			{ VariableName.ForgiveCommand, "!f"},
-			{ VariableName.TeamKillMessage, "{killer} TEAM KILLED {victim}. Watch your fire dum-dum!"},
-			{ VariableName.KickCountdownMessage, "{killer} will be kicked after {punishesLeft} punishes."},
-			{ VariableName.KickImminentMessage, "{killer} will be kicked on next punish!"},
-			{ VariableName.VictimPromptMessage, "!p to punish, !f to forgive."},
-			{ VariableName.ShowVictimStats, enumBoolYesNo.Yes},
+			{
+				VariableName.KillerMessages, new []
+				{
+					"You TEAM KILLED {victim}.",
+					"Watch your fire! Punishes left before kick: {punishesLeft}."
+				}
+			},
+			{
+				VariableName.VictimMessages, new []
+				{
+					"TEAM KILLED by {killer}.",
+					"Their TK's: you ({victimCount}) team ({teamCount}).",
+					"You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).",
+					"Punishes left before kick: {punishesLeft}.",
+					"!p to punish, !f to forgive."
+				}
+			},
 			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)."},
 			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)."},
 			{ VariableName.PunishedMessage, "Punished {killer}."},
@@ -67,11 +85,8 @@ namespace PRoConEvents
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
 		private string _forgiveCommand = Defaults[VariableName.ForgiveCommand].ToString();
-		private string _teamKillMessage = Defaults[VariableName.TeamKillMessage].ToString();
-		private string _kickCountdownMessage = Defaults[VariableName.KickCountdownMessage].ToString();
-		private string _kickImminentMessage = Defaults[VariableName.KickImminentMessage].ToString();
-		private string _victimPromptMessage = Defaults[VariableName.VictimPromptMessage].ToString();
-		private enumBoolYesNo _showVictimStats = (enumBoolYesNo)Defaults[VariableName.ShowVictimStats];
+		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
+		private string[] _victimMessages = (string[])Defaults[VariableName.VictimMessages];
 		private string _noOneToPunishMessage = Defaults[VariableName.NoOneToPunishMessage].ToString();
 		private string _noOneToForgiveMessage = Defaults[VariableName.NoOneToForgiveMessage].ToString();
 		private string _punishedMessage = Defaults[VariableName.PunishedMessage].ToString();
@@ -183,11 +198,8 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
-				new CPluginVariable(VariableGroup.Messages + VariableName.TeamKillMessage, typeof(string), _teamKillMessage),
-				new CPluginVariable(VariableGroup.Messages + VariableName.KickCountdownMessage, typeof(string), _kickCountdownMessage),
-				new CPluginVariable(VariableGroup.Messages + VariableName.KickImminentMessage, typeof(string), _kickImminentMessage),
-				new CPluginVariable(VariableGroup.Messages + VariableName.VictimPromptMessage, typeof(string), _victimPromptMessage),
-				new CPluginVariable(VariableGroup.Messages + VariableName.ShowVictimStats, typeof(enumBoolYesNo), _showVictimStats),
+				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
@@ -206,11 +218,8 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
-				new CPluginVariable(VariableName.TeamKillMessage, typeof(string), _teamKillMessage),
-				new CPluginVariable(VariableName.KickCountdownMessage, typeof(string), _kickCountdownMessage),
-				new CPluginVariable(VariableName.KickImminentMessage, typeof(string), _kickImminentMessage),
-				new CPluginVariable(VariableName.VictimPromptMessage, typeof(string), _victimPromptMessage),
-				new CPluginVariable(VariableName.ShowVictimStats, typeof(enumBoolYesNo), _showVictimStats),
+				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.ToArray()),
+				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.ToArray()),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
@@ -229,20 +238,12 @@ namespace PRoConEvents
 
 			switch (variable)
 			{
-				case VariableName.TeamKillMessage:
-					_teamKillMessage = value;
+				case VariableName.KillerMessages:
+					_killerMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
 					break;
 
-				case VariableName.KickCountdownMessage:
-					_kickCountdownMessage = value;
-					break;
-
-				case VariableName.KickImminentMessage:
-					_kickImminentMessage = value;
-					break;
-
-				case VariableName.ShowVictimStats:
-					_showVictimStats = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+				case VariableName.VictimMessages:
+					_victimMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
 					break;
 
 				case VariableName.PunishCommand:
@@ -251,10 +252,6 @@ namespace PRoConEvents
 
 				case VariableName.ForgiveCommand:
 					_forgiveCommand = value;
-					break;
-
-				case VariableName.VictimPromptMessage:
-					_victimPromptMessage = value;
 					break;
 
 				case VariableName.NoOneToPunishMessage:
@@ -312,7 +309,7 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.Whitelist:
-					_whitelist = value.Split(new [] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					_whitelist = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
 					break;
 			}
 		}
@@ -384,15 +381,6 @@ namespace PRoConEvents
 			return punishesLeft < 1 ? 1 : punishesLeft;
 		}
 
-		private string GetTeamKillMessage(string killer, string victim)
-		{
-			var ret = _teamKillMessage
-				.Replace("{killer}", killer)
-				.Replace("{victim}", victim);
-
-			return ReplaceStaches(ret);
-		}
-
 		private List<TeamKill> GetAllTeamKillsByPlayer(string player)
 		{
 			return _teamKills
@@ -400,7 +388,7 @@ namespace PRoConEvents
 				.ToList();
 		}
 
-		private string GetVictimStatsMessage(string killer, string victim)
+		private Stats GetStats(string killer, string victim)
 		{
 			var allKillsByKiller = GetAllTeamKillsByPlayer(killer);
 
@@ -408,47 +396,43 @@ namespace PRoConEvents
 				.Where(tk => tk.VictimName == victim)
 				.ToList();
 
-			var punishedCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Punished);
-			var forgivenCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Forgiven);
-			var autoForgivenCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoForgiven);
-
-			var sb = new StringBuilder()
-				.AppendFormat("TK's by {0}: you ({1}) team ({2}).", killer, victimKillsByKiller.Count, allKillsByKiller.Count);
-
-			if (victimKillsByKiller.Count > 1)
+			return new Stats
 			{
-				sb.Append(" Previously you have:");
-
-				if (punishedCount > 0)
-					sb.AppendFormat(" punished ({0})", punishedCount);
-
-				if (forgivenCount > 0)
-					sb.AppendFormat(" forgiven ({0})", forgivenCount);
-
-				if (autoForgivenCount > 0)
-					sb.AppendFormat(" auto-forgiven ({0})", autoForgivenCount);
-
-				sb.Append(".");
-			}
-
-			return sb.ToString();
+				TeamKillsOnTeamCount = allKillsByKiller.Count(),
+				TeamKillsOnVictimCount = victimKillsByKiller.Count(),
+				VictimPunishedKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Punished),
+				VictimForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Forgiven),
+				VictimAutoForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoForgiven)
+			};
 		}
 
-		private string GetKickWarningMessage(string killer)
+		private void Notify(string to, string[] messages, string killer, string victim)
 		{
-			var punishesLeft = GetPunishesLeftBeforeKick(killer);
+			var stats = GetStats(killer, victim);
 
-			string ret;
-
-			if (punishesLeft == 1)
-				ret = _kickImminentMessage
-					.Replace("{killer}", killer);
-			else
-				ret = _kickCountdownMessage
+			foreach (var message in messages)
+			{
+				var m = message
 					.Replace("{killer}", killer)
-					.Replace("{punishesLeft}", punishesLeft.ToString());
+					.Replace("{victim}", victim)
+					.Replace("{victimCount}", stats.TeamKillsOnVictimCount.ToString())
+					.Replace("{teamCount}", stats.TeamKillsOnTeamCount.ToString())
+					.Replace("{punishedCount}", stats.VictimPunishedKillerCount.ToString())
+					.Replace("{forgivenCount}", stats.VictimForgivenKillerCount.ToString())
+					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString());
 
-			return ReplaceStaches(ret);
+				AdminSayPlayer(to, m);
+			}
+		}
+
+		private void NotifyKiller(string killer, string victim)
+		{
+			Notify(killer, _killerMessages, killer, victim);
+		}
+
+		private void NotifyVictim(string killer, string victim)
+		{
+			Notify(victim, _victimMessages, killer, victim);
 		}
 
 		private void OnTeamKill(Kill kill)
@@ -482,23 +466,8 @@ namespace PRoConEvents
 				Status = TeamKillStatus.Pending
 			});
 
-			var teamKillMessage = GetTeamKillMessage(killerName, victimName);
-
-			AdminSayPlayer(killerName, teamKillMessage);
-			AdminSayPlayer(victimName, teamKillMessage);
-
-			if (_hasPunishLimit == enumBoolYesNo.Yes)
-			{
-				var warningMessage = GetKickWarningMessage(killerName);
-
-				AdminSayPlayer(killerName, warningMessage);
-				AdminSayPlayer(victimName, warningMessage);
-			}
-
-			if (_showVictimStats == enumBoolYesNo.Yes)
-				AdminSayPlayer(victimName, GetVictimStatsMessage(killerName, victimName));
-
-			AdminSayPlayer(victimName, _victimPromptMessage);
+			NotifyKiller(killerName, victimName);
+			NotifyVictim(killerName, victimName);
 		}
 
 		private void OnChat(string player, string message)
@@ -506,10 +475,10 @@ namespace PRoConEvents
 			if (message == "!shame")
 				AdminSayPlayer(player, GetWorstTeamKillerMessage());
 
-			if (message == (_punishCommand))
+			if (message == _punishCommand)
 				PunishKillerOf(player);
 
-			if (message == (_forgiveCommand))
+			if (message == _forgiveCommand)
 				ForgiveKillerOf(player);
 		}
 
@@ -733,252 +702,10 @@ namespace PRoConEvents
 		public string GetDescriptionHtml()
 		{
 			return @"
-
-<style type=""text/css"">
-	p { font-size: 1em; }
-	p.default-value { color: #5e5e5e; }
-	table th { text-transform: none; }
-	h2 { margin-top: 1.1em; }
-	h2.group { color: #111; font-size: 1.6em; margin-top: 1.6em; margin-bottom: 0; }
-	h3 { font-size: 1.4em; font-family: Vera, Helvetica, Georgia; margin-top: 1.6em; font-weight: 400; padding-bottom: 6px; border-bottom: 1px solid #dcdcdb; }
-	h4 { color: #555; font-size: 1em; margin-top: 0; }
-</style>
-
 <h2>Description</h2>
 <p>Track team kill statistics and allow victims to punish their killers.</p>
-
-<h2>Plugin Settings</h2>
-
-<h2 class=""group"">Commands</h2>
-
-<h3>" + VariableName.PunishCommand + @"</h3>
-<p>The command to punish a team killer. This can be issued in global, team, or squad chat.</p>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.PunishCommand] + @"</p>
-
-<h3>" + VariableName.ForgiveCommand + @"</h3>
-<p>The command to forgive a team killer. This can be issued in global, team, or squad chat.</p>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.ForgiveCommand] + @"</p>
-
-<h2 class=""group"">Messages</h2>
-
-<h3>" + VariableName.TeamKillMessage + @"</h3>
-<p>Sent to both the killer and victim when a team kill is detected.</p>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{killer}</strong></td>
-	<td>Player name of killer.</td>
-</tr>
-<tr>
-	<td><strong>{victim}</strong></td>
-	<td>Player name of victim.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.TeamKillMessage] + @"</p>
-
-<h3>" + VariableName.KickCountdownMessage + @"</h3>
-<p>Sent to the killer and victim when a team kill is detected, if:</p>
-<ol>
-	<li><em>" + VariableName.HasPunishLimit + @"</em> is set to <em>Yes</em>.</li>
-	<li>The killer is more than one punish away from the limit.</li>
-</ol>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{killer}</strong></td>
-	<td>Player name of killer.</td>
-</tr>
-<tr>
-	<td><strong>{punishesLeft}</strong></td>
-	<td>The number of punishes left before the killer is kicked.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.KickCountdownMessage] + @"</p>
-
-<h3>" + VariableName.KickImminentMessage + @"</h3>
-<p>Sent to the killer and victim when a team kill is detected, if:</p>
-<ol>
-	<li><em>" + VariableName.HasPunishLimit + @"</em> is set to <em>Yes</em>.</li>
-	<li>The killer is one punish away from the limit.</li>
-</ol>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{killer}</strong></td>
-	<td>Player name of killer.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.KickImminentMessage] + @"</p>
-
-<h3>" + VariableName.VictimPromptMessage + @"</h3>
-<p>Sent to the victim when a team kill is detected.</p>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.VictimPromptMessage] + @"</p>
-
-<h3>" + VariableName.ShowVictimStats + @"</h3>
-<p>Show statistics with the victim prompt. This includes the number of times the:</p>
-<ul>
-	<li>killer has killed the victim.</li>
-	<li>killer has killed a team member.</li>
-	<li>victim has punished or forgiven the killer.</li>
-	<li>killer has been auto-forgiven for a team kill on this victim.</li>
-</ul>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.ShowVictimStats] + @"</p>
-
-<h3>" + VariableName.PunishedMessage + @"</h3>
-<p>Sent to both the killer and victim when a <em>punish</em> command is successful.</p>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{killer}</strong></td>
-	<td>Player name of killer.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.PunishedMessage] + @"</p>
-
-<h3>" + VariableName.ForgivenMessage + @"</h3>
-<p>Sent to both the killer and victim when a <em>forgive</em> command is successful.</p>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{killer}</strong></td>
-	<td>Player name of killer.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.ForgivenMessage] + @"</p>
-
-<h3>" + VariableName.NoOneToPunishMessage + @"</h3>
-<p>Sent to the player who issued a <em>punish</em> command that was unsuccessful.</p>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{window}</strong></td>
-	<td>Length (in seconds) of the punish window.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.NoOneToPunishMessage] + @"</p>
-
-<h3>" + VariableName.NoOneToForgiveMessage + @"</h3>
-<p>Sent to the player who issued a <em>forgive</em> command that was unsuccessful.</p>
-
-<h4>Available substitutions</h4>
-<table>
-<tr>
-	<th>Placeholder</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td><strong>{window}</strong></td>
-	<td>Length (in seconds) of the punish window.</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.NoOneToForgiveMessage] + @"</p>
-
-<h2 class=""group"">Limits</h2>
-
-<h3>" + VariableName.PunishWindow + @"</h3>
-<p>How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.</p>
-
-<h4>Range</h4>
-<table>
-<tr>
-	<th>Minimum</th>
-	<td>" + PunishWindowMin + @"</td>
-</tr>
-<tr>
-	<th>Maximum</th>
-	<td>" + PunishWindowMax + @"</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + ((TimeSpan)Defaults[VariableName.PunishWindow]).TotalSeconds + @"</p>
-
-<h3>" + VariableName.HasPunishLimit + @"</h3>
-<p>Should a team killer be kicked after reaching the <em>punish limit</em>?</p>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.HasPunishLimit] + @"</p>
-
-<h3>" + VariableName.PunishLimit + @"</h3>
-<p>How many times a killer is allowed to be punished before being kicked.</p>
-
-<h4>Range</h4>
-<table>
-<tr>
-	<th>Minimum</th>
-	<td>" + PunishLimitMin + @"</td>
-</tr>
-<tr>
-	<th>Maximum</th>
-	<td>" + PunishLimitMax + @"</td>
-</tr>
-</table>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.PunishLimit] + @"</p>
-
-<h2 class=""group"">Protection</h2>
-
-<h3>" + VariableName.Protected + @"</h3>
-<p>Who, if any, should be protected from punishment.</p>
-
-<h4>Default value</h4>
-<p class=""default-value"">" + Defaults[VariableName.Protected] + @"</p>
-
-<h3>" + VariableName.Whitelist + @"</h3>
-<p>A list of players (one per line) that are protected from punishment.</p>";
+<p><a href=""https://github.com/stajs/Stajs.Procon.TeamKillTracker"">https://github.com/stajs/Stajs.Procon.TeamKillTracker</a></p>
+";
 		}
 	}
 }
