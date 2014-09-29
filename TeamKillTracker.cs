@@ -419,7 +419,8 @@ namespace PRoConEvents
 					.Replace("{teamCount}", stats.TeamKillsOnTeamCount.ToString())
 					.Replace("{punishedCount}", stats.VictimPunishedKillerCount.ToString())
 					.Replace("{forgivenCount}", stats.VictimForgivenKillerCount.ToString())
-					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString());
+					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString())
+					.Replace("{punishesLeft}", GetPunishesLeftBeforeKick(killer).ToString());
 
 				AdminSayPlayer(to, m);
 			}
