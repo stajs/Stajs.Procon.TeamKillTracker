@@ -10,7 +10,7 @@ Track team kill statistics and allow self-management of team killers.
 - Optional kick for team killers after reaching a punish limit.
 - Configurable commands and messages.
 - Optionally protect admins or whitelisted players from being punished.
-- Shame the worst team killers at the end of the round.
+- Shame the worst team killers at the end of the round, or on demand by issuing a `!shame` command.
 
 ## Install
 
