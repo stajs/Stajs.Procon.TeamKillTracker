@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "2.2.0";
+		public const string Version = "2.3.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -23,6 +23,7 @@ namespace PRoConEvents
 			public const string Messages = "Messages|";
 			public const string Limits = "Limits|";
 			public const string Protection = "Protection|";
+			public const string Shame = "Shame|";
 		}
 
 		private struct VariableName
@@ -41,6 +42,7 @@ namespace PRoConEvents
 			public const string PunishLimit = "Punish limit";
 			public const string Protected = "Who should be protected?";
 			public const string Whitelist = "Whitelist";
+			public const string ShameAllOnRoundEnd = "Shame all on round end?";
 		}
 
 		private class Stats
@@ -86,6 +88,7 @@ namespace PRoConEvents
 			{ VariableName.PunishLimit, 5},
 			{ VariableName.Protected, Protect.Admins},
 			{ VariableName.Whitelist, new string[] {}},
+			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes}
 		};
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
@@ -102,6 +105,7 @@ namespace PRoConEvents
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
 		private Protect _protect = (Protect)Defaults[VariableName.Protected];
 		private string[] _whitelist = (string[])Defaults[VariableName.Whitelist];
+		private enumBoolYesNo _shameAllOnRoundEnd = (enumBoolYesNo)Defaults[VariableName.ShameAllOnRoundEnd];
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -215,7 +219,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
+				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableGroup.Shame + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd)
 			};
 		}
 
@@ -236,7 +241,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
+				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd)
 			};
 		}
 
@@ -299,6 +305,10 @@ namespace PRoConEvents
 
 				case VariableName.HasPunishLimit:
 					_hasPunishLimit = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					break;
+
+				case VariableName.ShameAllOnRoundEnd:
+					_shameAllOnRoundEnd = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
 					break;
 
 				case VariableName.PunishLimit:
@@ -717,6 +727,9 @@ namespace PRoConEvents
 
 		private void ShameAll()
 		{
+			if (_shameAllOnRoundEnd == enumBoolYesNo.No)
+				return;
+
 			var killers = GetWorstTeamKillers();
 
 			var message = killers.Any()
