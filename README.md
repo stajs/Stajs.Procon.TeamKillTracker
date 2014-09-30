@@ -10,7 +10,7 @@ Track team kill statistics and allow self-management of team killers.
 - Optional kick for team killers after reaching a punish limit.
 - Configurable commands and messages.
 - Optionally protect admins or whitelisted players from being punished.
-- Shame the worst team killers at the end of the round, or on demand by issuing a `!shame` command.
+- Shame the worst team killers at the end of the round or on demand.
 
 ## Install
 
@@ -23,15 +23,22 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 
 ### Commands
 
+Commands can be issued in global, team, or squad chat.
+
 |Command|Punish|
 |:--|:---|
-|Description|The command to punish a team killer. This can be issued in global, team, or squad chat.|
+|Description|Punish a team killer.|
 |Default&nbsp;value|`!p`|
 
 |Command|Forgive|
 |:--|:---|
-|Description|The command to forgive a team killer. This can be issued in global, team, or squad chat.|
+|Description|Forgive a team killer.|
 |Default&nbsp;value|`!f`|
+
+|Command|Shame|
+|:--|:---|
+|Description|List the worst team killers.|
+|Default&nbsp;value|`!shame`|
 
 ### Messages
 
