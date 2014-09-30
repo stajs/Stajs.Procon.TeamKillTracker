@@ -104,7 +104,7 @@ Commands can be issued in global, team, or squad chat.
 |Description|Displayed to all players if `Shame all on round end?` is `Yes`, but no team kills are recorded.|
 |Default&nbsp;value|`Wow! We got through a round without a single teamkill!`|
 
-|No one to shame on shame command message|&nbsp;|
+|No one to shame message|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a shame command.|
 |Default&nbsp;value|`Amazing. No team kills so far...`|
