@@ -632,7 +632,7 @@ namespace PRoConEvents
 				return;
 			}
 
-			var message = ReplaceStaches(_punishedMessage.Replace("{killer}", killer));
+			var message = _punishedMessage.Replace("{killer}", killer);
 
 			AdminSayPlayer(killer, message);
 			AdminSayPlayer(kill.VictimName, message);
@@ -647,7 +647,7 @@ namespace PRoConEvents
 
 		private void Forgive(TeamKill kill)
 		{
-			var message = ReplaceStaches(_forgivenMessage.Replace("{killer}", kill.KillerName));
+			var message = _forgivenMessage.Replace("{killer}", kill.KillerName);
 
 			AdminSayPlayer(kill.KillerName, message);
 			AdminSayPlayer(kill.VictimName, message);
