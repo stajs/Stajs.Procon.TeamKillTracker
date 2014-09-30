@@ -37,8 +37,8 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 
 |Message|Killer|
 |:--|:---|
-|Description|Sent to the killer when a team kill is detected (one line per message).|
-|Default&nbsp;value|- `You TEAM KILLED {victim}.`<br />- `Watch your fire! Punishes left before kick: {punishesLeft}.`|
+|Description|Sent to the killer when a team kill is detected (one line per message). To yell the message, prefix the line with `@`.|
+|Default&nbsp;value|- `You TEAM KILLED {victim}.`<br />- `@You TEAM KILLED {victim}.`<br />- `Watch your fire! Punishes left before kick: {punishesLeft}.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 |`{victimCount}`|The number of times the killer has team killed the victim.|
@@ -50,8 +50,8 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 
 |Message|Victim|
 |:--|:---|
-|Description|Sent to the victim when a team kill is detected (one line per message).|
-|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `Punishes left before kick: {punishesLeft}.`<br />- `!p to punish, !f to forgive.`|
+|Description|Sent to the victim when a team kill is detected (one line per message). To yell the message, prefix the line with `@`.|
+|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `Punishes left before kick: {punishesLeft}.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 |`{victimCount}`|The number of times the killer has team killed the victim.|
