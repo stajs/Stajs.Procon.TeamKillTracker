@@ -23,7 +23,6 @@ namespace PRoConEvents
 			public const string Messages = "Messages|";
 			public const string Limits = "Limits|";
 			public const string Protection = "Protection|";
-			public const string Shame = "Shame|";
 		}
 
 		private struct VariableName
@@ -43,8 +42,8 @@ namespace PRoConEvents
 			public const string Protected = "Who should be protected?";
 			public const string Whitelist = "Whitelist";
 			public const string ShameAllOnRoundEnd = "Shame all on round end?";
-			public const string NoOneToShameOnRoundEndMessage = "Round end message";
-			public const string NoOneToShameMessage = "On shame command message";
+			public const string NoOneToShameOnRoundEndMessage = "No one to shame on round end message";
+			public const string NoOneToShameMessage = "No one to shame message";
 		}
 
 		private class Stats
@@ -221,14 +220,14 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableGroup.Shame + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
-				new CPluginVariable(VariableGroup.Shame + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
-				new CPluginVariable(VariableGroup.Shame + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage)
+				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
 			};
 		}
 
@@ -245,14 +244,14 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
+				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
+				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
 				new CPluginVariable(VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
-				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
-				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage)
+				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
 			};
 		}
 
@@ -262,14 +261,6 @@ namespace PRoConEvents
 
 			switch (variable)
 			{
-				case VariableName.KillerMessages:
-					_killerMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
-					break;
-
-				case VariableName.VictimMessages:
-					_victimMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
-					break;
-
 				case VariableName.PunishCommand:
 					_punishCommand = value;
 					break;
@@ -281,6 +272,22 @@ namespace PRoConEvents
 				case VariableName.ShameCommand:
 					_shameCommand = value;
 					break;
+				
+				case VariableName.KillerMessages:
+					_killerMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					break;
+
+				case VariableName.VictimMessages:
+					_victimMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					break;
+
+				case VariableName.PunishedMessage:
+					_punishedMessage = value;
+					break;
+
+				case VariableName.ForgivenMessage:
+					_forgivenMessage = value;
+					break;
 
 				case VariableName.NoOneToPunishMessage:
 					_noOneToPunishMessage = value;
@@ -290,12 +297,16 @@ namespace PRoConEvents
 					_noOneToForgiveMessage = value;
 					break;
 
-				case VariableName.PunishedMessage:
-					_punishedMessage = value;
+				case VariableName.ShameAllOnRoundEnd:
+					_shameAllOnRoundEnd = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
 					break;
 
-				case VariableName.ForgivenMessage:
-					_forgivenMessage = value;
+				case VariableName.NoOneToShameOnRoundEndMessage:
+					_noOneToShameOnRoundEndMessage = value;
+					break;
+
+				case VariableName.NoOneToShameMessage:
+					_noOneToShameMessage = value;
 					break;
 
 				case VariableName.PunishWindow:
@@ -315,18 +326,6 @@ namespace PRoConEvents
 
 				case VariableName.HasPunishLimit:
 					_hasPunishLimit = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
-					break;
-
-				case VariableName.ShameAllOnRoundEnd:
-					_shameAllOnRoundEnd = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
-					break;
-
-				case VariableName.NoOneToShameOnRoundEndMessage:
-					_noOneToShameOnRoundEndMessage = value;
-					break;
-
-				case VariableName.NoOneToShameMessage:
-					_noOneToShameMessage = value;
 					break;
 
 				case VariableName.PunishLimit:
