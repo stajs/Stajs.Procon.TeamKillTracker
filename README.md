@@ -64,14 +64,16 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 |Message|Punished|
 |:--|:---|
 |Description|Sent to both the killer and victim when a punish command is successful.|
-|Default&nbsp;value|`Punished {killer}.`|
+|Default&nbsp;value|`{killer} punished by {victim}.`|
 |`{killer}`|Player name of killer.|
+|`{victim}`|Player name of victim.|
 
 |Message|Forgiven|
 |:--|:---|
 |Description|Sent to both the killer and victim when a forgive command is successful.|
-|Default&nbsp;value|`Forgiven {killer}.`|
+|Default&nbsp;value|`{killer} forgiven by {victim}.`|
 |`{killer}`|Player name of killer.|
+|`{victim}`|Player name of victim.|
 
 |Message|No one to punish|
 |:--|:---|
