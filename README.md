@@ -35,30 +35,31 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 
 ### Messages
 
-|Message|Team kill|
+|Message|Killer|
 |:--|:---|
-|Description|Sent to both the killer and victim when a team kill is detected.|
-|Default&nbsp;value|`{killer} TEAM KILLED {victim}. Watch your fire dum-dum!`|
+|Description|Sent to the killer when a team kill is detected (one line per message).|
+|Default&nbsp;value|- `You TEAM KILLED {victim}.`<br />- `Watch your fire! Punishes left before kick: {punishesLeft}.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
-
-|Message|Kick countdown|
-|:--|:---|
-|Description|Sent to the killer and victim when a team kill is detected, if (1) `Kick after punish limit reached?` is set to `Yes`, and (2) the killer is more than one punish away from the limit.|
-|Default&nbsp;value|`{killer} will be kicked after {punishesLeft} punishes.`|
-|`{killer}`|Player name of killer.|
+|`{victimCount}`|The number of times the killer has team killed the victim.|
+|`{teamCount}`|The number of times the killer has team killed the team.|
+|`{punishedCount}`|The number of times the victim has previously punished the killer.|
+|`{forgivenCount}`|The number of times the victim has previously forgiven the killer.|
+|`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
-|Message|Kick imminent|
+|Message|Victim|
 |:--|:---|
-|Description|Sent to the killer and victim when a team kill is detected, if (1) `Kick after punish limit reached?` is set to `Yes,` and (2) the killer is one punish away from the limit.|
-|Default&nbsp;value|`{killer} will be kicked on next punish!`|
+|Description|Sent to the victim when a team kill is detected (one line per message).|
+|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `Punishes left before kick: {punishesLeft}.`<br />- `!p to punish, !f to forgive.`|
 |`{killer}`|Player name of killer.|
-
-|Message|Victim prompt|
-|:--|:---|
-|Description|Sent to the victim when a team kill is detected.|
-|Default&nbsp;value|`!p to punish, !f to forgive.`|
+|`{victim}`|Player name of victim.|
+|`{victimCount}`|The number of times the killer has team killed the victim.|
+|`{teamCount}`|The number of times the killer has team killed the team.|
+|`{punishedCount}`|The number of times the victim has previously punished the killer.|
+|`{forgivenCount}`|The number of times the victim has previously forgiven the killer.|
+|`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
+|`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
 |Message|Show victim stats?|
 |:--|:---|
