@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "2.0.0";
+		public const string Version = "2.1.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -77,8 +77,8 @@ namespace PRoConEvents
 			},
 			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)."},
 			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)."},
-			{ VariableName.PunishedMessage, "Punished {killer}."},
-			{ VariableName.ForgivenMessage, "Forgiven {killer}."},
+			{ VariableName.PunishedMessage, "{killer} punished by {victim}."},
+			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}."},
 			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45)},
 			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes},
 			{ VariableName.PunishLimit, 5},
@@ -621,6 +621,7 @@ namespace PRoConEvents
 		private void Punish(TeamKill kill)
 		{
 			var killer = kill.KillerName;
+			var victim = kill.VictimName;
 
 			var shouldKick =
 				_hasPunishLimit == enumBoolYesNo.Yes		// Limit is active.
@@ -632,10 +633,12 @@ namespace PRoConEvents
 				return;
 			}
 
-			var message = _punishedMessage.Replace("{killer}", killer);
+			var message = _punishedMessage
+				.Replace("{killer}", killer)
+				.Replace("{victim}", victim);
 
 			AdminSayPlayer(killer, message);
-			AdminSayPlayer(kill.VictimName, message);
+			AdminSayPlayer(victim, message);
 
 			kill.Status = TeamKillStatus.Punished;
 
@@ -647,10 +650,15 @@ namespace PRoConEvents
 
 		private void Forgive(TeamKill kill)
 		{
-			var message = _forgivenMessage.Replace("{killer}", kill.KillerName);
+			var killer = kill.KillerName;
+			var victim = kill.VictimName;
 
-			AdminSayPlayer(kill.KillerName, message);
-			AdminSayPlayer(kill.VictimName, message);
+			var message = _forgivenMessage
+				.Replace("{killer}", killer)
+				.Replace("{victim}", victim);
+
+			AdminSayPlayer(killer, message);
+			AdminSayPlayer(victim, message);
 
 			kill.Status = TeamKillStatus.Forgiven;
 		}
