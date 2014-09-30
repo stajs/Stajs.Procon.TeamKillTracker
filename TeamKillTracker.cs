@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "2.1.0";
+		public const string Version = "2.2.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -29,6 +29,7 @@ namespace PRoConEvents
 		{
 			public const string PunishCommand = "Punish";
 			public const string ForgiveCommand = "Forgive";
+			public const string ShameCommand = "Shame";
 			public const string KillerMessages = "Killer";
 			public const string VictimMessages = "Victim";
 			public const string NoOneToPunishMessage = "No one to punish";
@@ -55,6 +56,7 @@ namespace PRoConEvents
 		{
 			{ VariableName.PunishCommand, "!p"},
 			{ VariableName.ForgiveCommand, "!f"},
+			{ VariableName.ShameCommand, "!shame"},
 			{
 				VariableName.KillerMessages, new []
 				{
@@ -88,6 +90,7 @@ namespace PRoConEvents
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
 		private string _forgiveCommand = Defaults[VariableName.ForgiveCommand].ToString();
+		private string _shameCommand = Defaults[VariableName.ShameCommand].ToString();
 		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
 		private string[] _victimMessages = (string[])Defaults[VariableName.VictimMessages];
 		private string _noOneToPunishMessage = Defaults[VariableName.NoOneToPunishMessage].ToString();
@@ -201,6 +204,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string), _shameCommand),
 				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
@@ -221,6 +225,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
+				new CPluginVariable(VariableName.ShameCommand, typeof(string), _shameCommand),
 				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
@@ -255,6 +260,10 @@ namespace PRoConEvents
 
 				case VariableName.ForgiveCommand:
 					_forgiveCommand = value;
+					break;
+
+				case VariableName.ShameCommand:
+					_shameCommand = value;
 					break;
 
 				case VariableName.NoOneToPunishMessage:
@@ -499,8 +508,8 @@ namespace PRoConEvents
 
 		private void OnChat(string player, string message)
 		{
-			if (message == "!shame")
-				AdminSayPlayer(player, GetWorstTeamKillerMessage());
+			if (message == _shameCommand)
+				ShamePlayer(player);
 
 			if (message == _punishCommand)
 				PunishKillerOf(player);
@@ -663,19 +672,19 @@ namespace PRoConEvents
 			kill.Status = TeamKillStatus.Forgiven;
 		}
 
-		private string GetWorstTeamKillerMessage()
+		private List<TeamKiller> GetWorstTeamKillers()
 		{
 			var worstTeamKillers = _teamKills
-				 .GroupBy(tk => tk.KillerName)
-				 .Select(g => new TeamKiller
-				 {
-					 Name = g.Key,
-					 TeamKillCount = g.Count(),
-					 Status = TeamKillerStatus.Survived
-				 })
-				 .OrderByDescending(tk => tk.TeamKillCount)
-				 .Take(3)
-				 .ToList();
+					.GroupBy(tk => tk.KillerName)
+					.Select(g => new TeamKiller
+					{
+						Name = g.Key,
+						TeamKillCount = g.Count(),
+						Status = TeamKillerStatus.Survived
+					})
+					.OrderByDescending(tk => tk.TeamKillCount)
+					.Take(3)
+					.ToList();
 
 			worstTeamKillers
 				 .AddRange(_kickedPlayers);
@@ -685,20 +694,22 @@ namespace PRoConEvents
 				 .Take(3)
 				 .ToList();
 
-			if (!worstTeamKillers.Any())
-				return "Wow! We got through a round without a single teamkill!";
+			return worstTeamKillers;
+		}
 
+		private string GetWorstTeamKillersMessage(List<TeamKiller> killers)
+		{
 			var sb = new StringBuilder();
 
-			for (int i = 0; i < worstTeamKillers.Count; i++)
+			for (int i = 0; i < killers.Count; i++)
 			{
-				var killer = worstTeamKillers[i];
+				var killer = killers[i];
 
 				sb.AppendFormat("{0} ({1}){2}{3}",
 					  killer.Name,
 					  killer.TeamKillCount,
 					  killer.Status == TeamKillerStatus.Kicked ? " kicked" : string.Empty,
-					  i + 1 < worstTeamKillers.Count ? ", " : ".");
+					  i + 1 < killers.Count ? ", " : ".");
 			}
 
 			return "Worst team killers: " + sb;
@@ -706,7 +717,34 @@ namespace PRoConEvents
 
 		private void ShameAll()
 		{
-			AdminSayAll(GetWorstTeamKillerMessage());
+			var killers = GetWorstTeamKillers();
+
+			var message = killers.Any()
+				? GetWorstTeamKillersMessage(killers)
+				: "Wow! We got through a round without a single teamkill!";
+
+			AdminSayAll(message);
+		}
+
+		private void ShamePlayer(string player)
+		{
+			var killers = GetWorstTeamKillers();
+
+			var message = killers.Any()
+				? GetWorstTeamKillersMessage(killers)
+				: "Amazing. No team kills so far...";
+
+			AdminSayPlayer(player, message);
+
+			if (killers.Any(tk => tk.Name == player))
+				return;
+
+			var playerTeamKills = GetAllTeamKillsByPlayer(player);
+
+			if (!playerTeamKills.Any())
+				return;
+
+			AdminSayPlayer(player, "Your team kills: " + playerTeamKills.Count + ".");
 		}
 
 		private string ReplaceStaches(string s)
