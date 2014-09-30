@@ -25,24 +25,24 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 
 Commands can be issued in global, team, or squad chat.
 
-|Command|Punish|
+|Punish|&nbsp;|
 |:--|:---|
 |Description|Punish a team killer.|
 |Default&nbsp;value|`!p`|
 
-|Command|Forgive|
+|Forgive|&nbsp;|
 |:--|:---|
 |Description|Forgive a team killer.|
 |Default&nbsp;value|`!f`|
 
-|Command|Shame|
+|Shame|&nbsp;|
 |:--|:---|
 |Description|List the worst team killers.|
 |Default&nbsp;value|`!shame`|
 
 ### Messages
 
-|Message|Killer|
+|Killer|&nbsp;|
 |:--|:---|
 |Description|Sent to the killer when a team kill is detected (one line per message). Prefix the line with `@` to yell.|
 |Default&nbsp;value|- `You TEAM KILLED {victim}.`<br />- `@You TEAM KILLED {victim}.`<br />- `Watch your fire! Punishes left before kick: {punishesLeft}.`|
@@ -55,7 +55,7 @@ Commands can be issued in global, team, or squad chat.
 |`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
-|Message|Victim|
+|Victim|&nbsp;|
 |:--|:---|
 |Description|Sent to the victim when a team kill is detected (one line per message). Prefix the line with `@` to yell.|
 |Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `Punishes left before kick: {punishesLeft}.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
@@ -68,31 +68,46 @@ Commands can be issued in global, team, or squad chat.
 |`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
-|Message|Punished|
+|Punished|&nbsp;|
 |:--|:---|
 |Description|Sent to both the killer and victim when a punish command is successful.|
 |Default&nbsp;value|`{killer} punished by {victim}.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 
-|Message|Forgiven|
+|Forgiven|&nbsp;|
 |:--|:---|
 |Description|Sent to both the killer and victim when a forgive command is successful.|
 |Default&nbsp;value|`{killer} forgiven by {victim}.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 
-|Message|No one to punish|
+|No one to punish|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a punish command that was unsuccessful.|
 |Default&nbsp;value|`No one to punish (auto-forgive after {window} seconds).`|
 |`{window}`|Length (in seconds) of the punish window.|
 
-|Message|No one to forgive|
+|No one to forgive|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a forgive command that was unsuccessful.|
 |Default&nbsp;value|`No one to forgive (auto-forgive after {window} seconds).`|
 |`{window}`|Length (in seconds) of the punish window.|
+
+|Shame all on round end?|&nbsp;|
+|:--|:---|
+|Description|Should a list of the worst team killers be displayed to all players at the end of the round?|
+|Default&nbsp;value|`Yes`|
+
+|No one to shame on round end message|&nbsp;|
+|:--|:---|
+|Description|Displayed to all players if `Shame all on round end?` is `Yes`, but no team kills are recorded.|
+|Default&nbsp;value|`Wow! We got through a round without a single teamkill!`|
+
+|No one to shame message|&nbsp;|
+|:--|:---|
+|Description|Sent to the player who issued a shame command.|
+|Default&nbsp;value|`Amazing. No team kills so far...`|
 
 ### Limits
 
