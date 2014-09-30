@@ -218,8 +218,8 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
-				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.ToArray()),
-				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.ToArray()),
+				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
@@ -228,7 +228,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.ToArray())
+				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
 			};
 		}
 
@@ -412,7 +412,7 @@ namespace PRoConEvents
 
 			foreach (var message in messages)
 			{
-				var m = message
+				var m = CPluginVariable.Decode(message)
 					.Replace("{killer}", killer)
 					.Replace("{victim}", victim)
 					.Replace("{victimCount}", stats.TeamKillsOnVictimCount.ToString())
