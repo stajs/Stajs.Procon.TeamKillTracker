@@ -61,11 +61,6 @@ This plugin _may_ work for other games, but has only been tested against BF4.
 |`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
-|Message|Show victim stats?|
-|:--|:---|
-|Description|Show statistics with the victim prompt. This includes the number of times the:<br/>- killer has killed the victim.<br/>- killer has killed a team member.<br/>- victim has punished or forgiven the killer.<br/>- killer has been auto-forgiven for a team kill on this victim.|
-|Default&nbsp;value|`Yes`|
-
 |Message|Punished|
 |:--|:---|
 |Description|Sent to both the killer and victim when a punish command is successful.|
