@@ -59,6 +59,7 @@ namespace PRoConEvents
 				VariableName.KillerMessages, new []
 				{
 					"You TEAM KILLED {victim}.",
+					"@You TEAM KILLED {victim}.",
 					"Watch your fire! Punishes left before kick: {punishesLeft}."
 				}
 			},
@@ -66,10 +67,12 @@ namespace PRoConEvents
 				VariableName.VictimMessages, new []
 				{
 					"TEAM KILLED by {killer}.",
+					"@TEAM KILLED by {killer}.",
 					"Their TK's: you ({victimCount}) team ({teamCount}).",
 					"You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).",
 					"Punishes left before kick: {punishesLeft}.",
-					"!p to punish, !f to forgive."
+					"!p to punish, !f to forgive.",
+					"@!p to punish, !f to forgive."
 				}
 			},
 			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)."},
@@ -408,11 +411,26 @@ namespace PRoConEvents
 
 		private void Notify(string to, string[] messages, string killer, string victim)
 		{
+			const int yellInterval = 2;
+			const int yellDuration = 10;
+
+			var yellCount = 0;
+
 			var stats = GetStats(killer, victim);
 
 			foreach (var message in messages)
 			{
-				var m = CPluginVariable.Decode(message)
+				var m = CPluginVariable.Decode(message);
+
+				var shouldYell = m.StartsWith("@");
+
+				if (shouldYell)
+					m = m.Substring(1).Trim();
+
+				if (string.IsNullOrEmpty(m))
+					continue;
+
+				m = m
 					.Replace("{killer}", killer)
 					.Replace("{victim}", victim)
 					.Replace("{victimCount}", stats.TeamKillsOnVictimCount.ToString())
@@ -422,7 +440,15 @@ namespace PRoConEvents
 					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString())
 					.Replace("{punishesLeft}", GetPunishesLeftBeforeKick(killer).ToString());
 
-				AdminSayPlayer(to, m);
+				if (shouldYell)
+				{
+					var delay = (yellInterval + yellDuration) * yellCount++;
+					AdminYellPlayer(to, m, delay, yellDuration);
+				}
+				else
+				{
+					AdminSayPlayer(to, m);
+				}
 			}
 		}
 
@@ -698,6 +724,14 @@ namespace PRoConEvents
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.send", "admin.say", message, "player", player);
 			ExecuteCommand("procon.protected.chat.write", "(AdminSayPlayer " + player + ") " + message);
+		}
+
+		private void AdminYellPlayer(string player, string message, int delay, int duration)
+		{
+			message = ReplaceStaches(message);
+			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.send", "admin.yell", message, duration.ToString(), "player", player);
+			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "(AdminYellPlayer " + player + ") " + message);
+
 		}
 
 		public string GetDescriptionHtml()
