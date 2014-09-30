@@ -121,3 +121,21 @@ Commands can be issued in global, team, or squad chat.
 |Whitelist|&nbsp;|
 |:--|:---|
 |Description|A list of players (one per line) that are protected from punishment.|
+
+
+### Shame
+
+|Shame all on round end?|&nbsp;|
+|:--|:---|
+|Description|Should a list of the worst team killers be displayed to all players at the end of the round?|
+|Default&nbsp;value|`Yes`|
+
+|No one to shame on round end message|&nbsp;|
+|:--|:---|
+|Description|Displayed to all players if `Shame all on round end?` is `Yes`, but no team kills are recorded.|
+|Default&nbsp;value|`Wow! We got through a round without a single teamkill!`|
+
+|No one to shame on shame command message|&nbsp;|
+|:--|:---|
+|Description|Sent to the player who issued a shame command.|
+|Default&nbsp;value|`Amazing. No team kills so far...`|
