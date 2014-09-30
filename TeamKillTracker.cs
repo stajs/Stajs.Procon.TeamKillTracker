@@ -43,6 +43,8 @@ namespace PRoConEvents
 			public const string Protected = "Who should be protected?";
 			public const string Whitelist = "Whitelist";
 			public const string ShameAllOnRoundEnd = "Shame all on round end?";
+			public const string NoOneToShameOnRoundEndMessage = "Round end message";
+			public const string NoOneToShameMessage = "On shame command message";
 		}
 
 		private class Stats
@@ -88,7 +90,9 @@ namespace PRoConEvents
 			{ VariableName.PunishLimit, 5},
 			{ VariableName.Protected, Protect.Admins},
 			{ VariableName.Whitelist, new string[] {}},
-			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes}
+			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes},
+			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!"},
+			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..."}
 		};
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
@@ -106,6 +110,8 @@ namespace PRoConEvents
 		private Protect _protect = (Protect)Defaults[VariableName.Protected];
 		private string[] _whitelist = (string[])Defaults[VariableName.Whitelist];
 		private enumBoolYesNo _shameAllOnRoundEnd = (enumBoolYesNo)Defaults[VariableName.ShameAllOnRoundEnd];
+		private string _noOneToShameOnRoundEndMessage = Defaults[VariableName.NoOneToShameOnRoundEndMessage].ToString();
+		private string _noOneToShameMessage = Defaults[VariableName.NoOneToShameMessage].ToString();
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -220,7 +226,9 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableGroup.Shame + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd)
+				new CPluginVariable(VariableGroup.Shame + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
+				new CPluginVariable(VariableGroup.Shame + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableGroup.Shame + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage)
 			};
 		}
 
@@ -242,7 +250,9 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd)
+				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
+				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage)
 			};
 		}
 
@@ -309,6 +319,14 @@ namespace PRoConEvents
 
 				case VariableName.ShameAllOnRoundEnd:
 					_shameAllOnRoundEnd = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					break;
+
+				case VariableName.NoOneToShameOnRoundEndMessage:
+					_noOneToShameOnRoundEndMessage = value;
+					break;
+
+				case VariableName.NoOneToShameMessage:
+					_noOneToShameMessage = value;
 					break;
 
 				case VariableName.PunishLimit:
@@ -734,7 +752,7 @@ namespace PRoConEvents
 
 			var message = killers.Any()
 				? GetWorstTeamKillersMessage(killers)
-				: "Wow! We got through a round without a single teamkill!";
+				: _noOneToShameOnRoundEndMessage;
 
 			AdminSayAll(message);
 		}
@@ -745,7 +763,7 @@ namespace PRoConEvents
 
 			var message = killers.Any()
 				? GetWorstTeamKillersMessage(killers)
-				: "Amazing. No team kills so far...";
+				: _noOneToShameMessage;
 
 			AdminSayPlayer(player, message);
 
