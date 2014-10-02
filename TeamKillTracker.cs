@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "2.3.0";
+		public const string Version = "2.3.1";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -23,6 +23,7 @@ namespace PRoConEvents
 			public const string Messages = "Messages|";
 			public const string Limits = "Limits|";
 			public const string Protection = "Protection|";
+			public const string Debug = "Debug|";
 		}
 
 		private struct VariableName
@@ -44,6 +45,7 @@ namespace PRoConEvents
 			public const string ShameAllOnRoundEnd = "Shame all on round end?";
 			public const string NoOneToShameOnRoundEndMessage = "No one to shame on round end message";
 			public const string NoOneToShameMessage = "No one to shame message";
+			public const string ShouldSuicideCountAsATeamKill = "Should suicide count as a team kill?";
 		}
 
 		private class Stats
@@ -91,7 +93,8 @@ namespace PRoConEvents
 			{ VariableName.Whitelist, new string[] {}},
 			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes},
 			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!"},
-			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..."}
+			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..."},
+			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No}
 		};
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
@@ -111,6 +114,7 @@ namespace PRoConEvents
 		private enumBoolYesNo _shameAllOnRoundEnd = (enumBoolYesNo)Defaults[VariableName.ShameAllOnRoundEnd];
 		private string _noOneToShameOnRoundEndMessage = Defaults[VariableName.NoOneToShameOnRoundEndMessage].ToString();
 		private string _noOneToShameMessage = Defaults[VariableName.NoOneToShameMessage].ToString();
+		private enumBoolYesNo _shouldSuicideCountAsATeamKill = (enumBoolYesNo)Defaults[VariableName.ShouldSuicideCountAsATeamKill];
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -227,7 +231,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
+				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill)
 			};
 		}
 
@@ -251,7 +256,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
+				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill)
 			};
 		}
 
@@ -349,6 +355,10 @@ namespace PRoConEvents
 
 				case VariableName.Whitelist:
 					_whitelist = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					break;
+
+				case VariableName.ShouldSuicideCountAsATeamKill:
+					_shouldSuicideCountAsATeamKill = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
 					break;
 			}
 		}
@@ -503,7 +513,7 @@ namespace PRoConEvents
 			if (kill == null || kill.Victim == null || kill.Killer == null)
 				return;
 
-			if (kill.IsSuicide)
+			if (kill.IsSuicide && _shouldSuicideCountAsATeamKill == enumBoolYesNo.No)
 				return;
 
 			var victimName = kill.Victim.SoldierName;
