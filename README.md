@@ -44,6 +44,13 @@ Commands can be issued in global, team, or squad chat.
 |Description|List the worst team killers.|
 |Default&nbsp;value|`!shame`|
 
+### Debug
+
+|Should suicide count as a team kill?|&nbsp;|
+|:--|:---|
+|Description|Useful for testing other plugin settings and messages. Allows a player to trigger a "team kill" by suiciding.|
+|Default&nbsp;value|`No`|
+
 ### Messages
 
 |Killer|&nbsp;|
