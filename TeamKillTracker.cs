@@ -448,7 +448,7 @@ namespace PRoConEvents
 		private int GetPunishesLeftBeforeKick(string player)
 		{
 			if (_hasPunishLimit == enumBoolYesNo.No)
-				return 9999;
+				return int.MaxValue;
 
 			var totalPunishCount = GetAllTeamKillsByPlayer(player).Count(tk => tk.Status == TeamKillStatus.Punished);
 			var punishesLeft = _punishLimit - totalPunishCount;
