@@ -35,7 +35,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |Forgive|&nbsp;|
 |:--|:---|
 |Description|Forgive a team killer.|
-|Default&nbsp;value|-`!f`<br />- `!forgive`|
+|Default&nbsp;value|- `!f`<br />- `!forgive`|
 
 |Shame|&nbsp;|
 |:--|:---|
