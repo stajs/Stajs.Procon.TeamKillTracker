@@ -10,7 +10,7 @@ namespace PRoConEvents
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 		public const string Author = "stajs";
-		public const string Version = "2.3.1";
+		public const string Version = "2.4.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -46,6 +46,7 @@ namespace PRoConEvents
 			public const string NoOneToShameOnRoundEndMessage = "No one to shame on round end message";
 			public const string NoOneToShameMessage = "No one to shame message";
 			public const string ShouldSuicideCountAsATeamKill = "Should suicide count as a team kill?";
+			public const string TraceLevel = "Trace level";
 		}
 
 		private class Stats
@@ -59,9 +60,9 @@ namespace PRoConEvents
 
 		private static readonly Dictionary<string, object> Defaults = new Dictionary<string, object>
 		{
-			{ VariableName.PunishCommand, "!p"},
-			{ VariableName.ForgiveCommand, "!f"},
-			{ VariableName.ShameCommand, "!shame"},
+			{ VariableName.PunishCommand, "!p" },
+			{ VariableName.ForgiveCommand, "!f" },
+			{ VariableName.ShameCommand, "!shame" },
 			{
 				VariableName.KillerMessages, new []
 				{
@@ -82,19 +83,20 @@ namespace PRoConEvents
 					"@!p to punish, !f to forgive."
 				}
 			},
-			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)."},
-			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)."},
-			{ VariableName.PunishedMessage, "{killer} punished by {victim}."},
-			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}."},
-			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45)},
-			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes},
-			{ VariableName.PunishLimit, 5},
-			{ VariableName.Protected, Protect.Admins},
-			{ VariableName.Whitelist, new string[] {}},
-			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes},
-			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!"},
-			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..."},
-			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No}
+			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)." },
+			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)." },
+			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
+			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
+			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
+			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes },
+			{ VariableName.PunishLimit, 5 },
+			{ VariableName.Protected, Protect.Admins },
+			{ VariableName.Whitelist, new string[] {} },
+			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes },
+			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!" },
+			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..." },
+			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No },
+			{ VariableName.TraceLevel, Trace.SayAndYell },
 		};
 
 		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
@@ -115,6 +117,7 @@ namespace PRoConEvents
 		private string _noOneToShameOnRoundEndMessage = Defaults[VariableName.NoOneToShameOnRoundEndMessage].ToString();
 		private string _noOneToShameMessage = Defaults[VariableName.NoOneToShameMessage].ToString();
 		private enumBoolYesNo _shouldSuicideCountAsATeamKill = (enumBoolYesNo)Defaults[VariableName.ShouldSuicideCountAsATeamKill];
+		private Trace _traceLevel = (Trace)Defaults[VariableName.TraceLevel];
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -154,6 +157,14 @@ namespace PRoConEvents
 			Admins,
 			Whitelist,
 			AdminsAndWhitelist
+		}
+
+		private enum Trace
+		{
+			Off,
+			Say,
+			Yell,
+			SayAndYell
 		}
 
 		#region IPRoConPluginInterface
@@ -232,7 +243,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill)
+				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
+				new CPluginVariable(VariableGroup.Debug + VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
 			};
 		}
 
@@ -257,7 +269,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill)
+				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
+				new CPluginVariable(VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
 			};
 		}
 
@@ -278,7 +291,7 @@ namespace PRoConEvents
 				case VariableName.ShameCommand:
 					_shameCommand = value;
 					break;
-				
+
 				case VariableName.KillerMessages:
 					_killerMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
 					break;
@@ -359,6 +372,10 @@ namespace PRoConEvents
 
 				case VariableName.ShouldSuicideCountAsATeamKill:
 					_shouldSuicideCountAsATeamKill = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					break;
+
+				case VariableName.TraceLevel:
+					_traceLevel = (Trace)Enum.Parse(typeof(Trace), value);
 					break;
 			}
 		}
@@ -802,22 +819,27 @@ namespace PRoConEvents
 		{
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.send", "admin.say", message, "all");
-			ExecuteCommand("procon.protected.chat.write", "(AdminSayAll) " + message);
+
+			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
+				ExecuteCommand("procon.protected.chat.write", "(AdminSayAll) " + message);
 		}
 
 		private void AdminSayPlayer(string player, string message)
 		{
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.send", "admin.say", message, "player", player);
-			ExecuteCommand("procon.protected.chat.write", "(AdminSayPlayer " + player + ") " + message);
+
+			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
+				ExecuteCommand("procon.protected.chat.write", "(AdminSayPlayer " + player + ") " + message);
 		}
 
 		private void AdminYellPlayer(string player, string message, int delay, int duration)
 		{
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.send", "admin.yell", message, duration.ToString(), "player", player);
-			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "(AdminYellPlayer " + player + ") " + message);
 
+			if (_traceLevel == Trace.Yell || _traceLevel == Trace.SayAndYell)
+				ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "(AdminYellPlayer " + player + ") " + message);
 		}
 
 		public string GetDescriptionHtml()
