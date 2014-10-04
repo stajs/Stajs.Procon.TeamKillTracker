@@ -821,7 +821,7 @@ namespace PRoConEvents
 			ExecuteCommand("procon.protected.send", "admin.say", message, "all");
 
 			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
-				ExecuteCommand("procon.protected.chat.write", "(AdminSayAll) " + message);
+				ExecuteCommand("procon.protected.chat.write", "TeamKillTracker > Say:" + message);
 		}
 
 		private void AdminSayPlayer(string player, string message)
@@ -830,7 +830,7 @@ namespace PRoConEvents
 			ExecuteCommand("procon.protected.send", "admin.say", message, "player", player);
 
 			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
-				ExecuteCommand("procon.protected.chat.write", "(AdminSayPlayer " + player + ") " + message);
+				ExecuteCommand("procon.protected.chat.write", "TeamKillTracker > Say > " + player + ": " + message);
 		}
 
 		private void AdminYellPlayer(string player, string message, int delay, int duration)
@@ -839,7 +839,7 @@ namespace PRoConEvents
 			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.send", "admin.yell", message, duration.ToString(), "player", player);
 
 			if (_traceLevel == Trace.Yell || _traceLevel == Trace.SayAndYell)
-				ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "(AdminYellPlayer " + player + ") " + message);
+				ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "TeamKillTracker > Yell > " + player + ": " + message);
 		}
 
 		public string GetDescriptionHtml()
