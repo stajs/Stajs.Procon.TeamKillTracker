@@ -861,7 +861,7 @@ namespace PRoConEvents
 			return @"
 <h2>Description</h2>
 <p>Track team kill statistics and allow victims to punish their killers.</p>
-<p>See project site for full documentation: <a href=""https://github.com/stajs/Stajs.Procon.TeamKillTracker"">https://github.com/stajs/Stajs.Procon.TeamKillTracker</a></p>
+<p>See project site for full documentation: <a href=""https://github.com/stajs/Stajs.Procon.TeamKillTracker"" target=""_blank"">https://github.com/stajs/Stajs.Procon.TeamKillTracker</a></p>
 ";
 		}
 	}
