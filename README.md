@@ -51,7 +51,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Trace level|&nbsp;|
 |:--|:---|
-|Description|Determines what player messages (if any) should also be sent to the Procon `Chat` tab.|
+|Description|Determines what messages (if any) should appear in the Procon `Chat` tab.|
 |Default&nbsp;value|`SayAndYell`|
 
 
