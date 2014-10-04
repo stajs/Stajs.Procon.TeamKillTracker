@@ -25,7 +25,7 @@ This plugin has only been tested against BF4. It is reported to work with [BF3](
 
 ### Commands
 
-Commands are case-insensitive and can be issued in global, team, or squad chat. You can have more than one text match per command.
+Commands are case-insensitive and can be issued in global, team, or squad chat. A command can be triggered by more than one matching player message.
 
 |Punish|&nbsp;|
 |:--|:---|
