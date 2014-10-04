@@ -502,6 +502,10 @@ namespace PRoConEvents
 				if (string.IsNullOrEmpty(m))
 					continue;
 
+				var punishesLeft = _hasPunishLimit == enumBoolYesNo.Yes
+					? GetPunishesLeftBeforeKick(killer).ToString()
+					: string.Empty;
+
 				m = m
 					.Replace("{killer}", killer)
 					.Replace("{victim}", victim)
@@ -510,7 +514,7 @@ namespace PRoConEvents
 					.Replace("{punishedCount}", stats.VictimPunishedKillerCount.ToString())
 					.Replace("{forgivenCount}", stats.VictimForgivenKillerCount.ToString())
 					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString())
-					.Replace("{punishesLeft}", GetPunishesLeftBeforeKick(killer).ToString());
+					.Replace("{punishesLeft}", punishesLeft);
 
 				if (shouldYell)
 				{
@@ -701,7 +705,7 @@ namespace PRoConEvents
 			var victim = kill.VictimName;
 
 			var shouldKick =
-				_hasPunishLimit == enumBoolYesNo.Yes		// Limit is active.
+				_hasPunishLimit == enumBoolYesNo.Yes			// Limit is active.
 				&& GetPunishesLeftBeforeKick(killer) == 1;	// This is their last chance.
 
 			if (shouldKick)
