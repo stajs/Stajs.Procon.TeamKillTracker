@@ -16,6 +16,9 @@ Track team kill statistics and allow self-management of team killers.
 
 0. Download and extract the latest release: https://github.com/stajs/Stajs.Procon.TeamKillTracker/releases.
 1. Move the plugin file `TeamKillTracker.cs` to your Procon layer under `Plugins\BF4` and restart your layer.
+2. Turn off the built-in team killing management:
+
+> ![image](https://cloud.githubusercontent.com/assets/2253814/4515372/77fea896-4bb9-11e4-872d-bd9f818e129b.png)
 
 ### Compatibility
 
