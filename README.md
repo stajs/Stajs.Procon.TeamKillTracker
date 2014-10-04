@@ -21,23 +21,21 @@ Track team kill statistics and allow self-management of team killers.
 
 This plugin has only been tested against BF4. It is reported to work with [BF3](https://forum.myrcon.com/showthread.php?8690-Team-Kill-Tracker&p=109517&viewfull=1#post109517) and _may_ work for other games.
 
-
-
 ## Settings
 
 ### Commands
 
-Commands can be issued in global, team, or squad chat.
+Commands are case-insensitive and can be issued in global, team, or squad chat. You can have more than one text match per command.
 
 |Punish|&nbsp;|
 |:--|:---|
 |Description|Punish a team killer.|
-|Default&nbsp;value|`!p`|
+|Default&nbsp;value|- `!p`<br />- `!punish`|
 
 |Forgive|&nbsp;|
 |:--|:---|
 |Description|Forgive a team killer.|
-|Default&nbsp;value|`!f`|
+|Default&nbsp;value|-`!f`<br />- `!forgive`|
 
 |Shame|&nbsp;|
 |:--|:---|
@@ -124,7 +122,7 @@ Commands can be issued in global, team, or squad chat.
 |No one to shame message|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a shame command.|
-|Default&nbsp;value|`Amazing. No team kills so far...`|
+|Default&nbsp;value|`No team kills so far...`|
 
 ### Limits
 

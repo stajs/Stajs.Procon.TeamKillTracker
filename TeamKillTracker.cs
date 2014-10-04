@@ -7,10 +7,19 @@ using PRoCon.Core.Plugin;
 
 namespace PRoConEvents
 {
+	public static class TeamKillTrackerExtensions
+	{
+		public static string[] ToArray(this string s)
+		{
+			return s.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+		}
+	}
+
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
+
 		public const string Author = "stajs";
-		public const string Version = "2.4.0.0";
+		public const string Version = "3.0.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -60,9 +69,9 @@ namespace PRoConEvents
 
 		private static readonly Dictionary<string, object> Defaults = new Dictionary<string, object>
 		{
-			{ VariableName.PunishCommand, "!p" },
-			{ VariableName.ForgiveCommand, "!f" },
-			{ VariableName.ShameCommand, "!shame" },
+			{ VariableName.PunishCommand, new [] { "!p", "!punish" } },
+			{ VariableName.ForgiveCommand, new [] { "!f", "!forgive" } },
+			{ VariableName.ShameCommand, new [] { "!shame" } },
 			{
 				VariableName.KillerMessages, new []
 				{
@@ -94,14 +103,14 @@ namespace PRoConEvents
 			{ VariableName.Whitelist, new string[] {} },
 			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes },
 			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!" },
-			{ VariableName.NoOneToShameMessage, "Amazing. No team kills so far..." },
+			{ VariableName.NoOneToShameMessage, "No team kills so far..." },
 			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No },
 			{ VariableName.TraceLevel, Trace.SayAndYell },
 		};
 
-		private string _punishCommand = Defaults[VariableName.PunishCommand].ToString();
-		private string _forgiveCommand = Defaults[VariableName.ForgiveCommand].ToString();
-		private string _shameCommand = Defaults[VariableName.ShameCommand].ToString();
+		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
+		private string[] _forgiveCommand = (string[])Defaults[VariableName.ForgiveCommand];
+		private string[] _shameCommand = (string[])Defaults[VariableName.ShameCommand];
 		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
 		private string[] _victimMessages = (string[])Defaults[VariableName.VictimMessages];
 		private string _noOneToPunishMessage = Defaults[VariableName.NoOneToPunishMessage].ToString();
@@ -226,9 +235,9 @@ namespace PRoConEvents
 		{
 			return new List<CPluginVariable>
 			{
-				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string), _punishCommand),
-				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
-				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string), _shameCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string[]), _punishCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
@@ -252,9 +261,9 @@ namespace PRoConEvents
 		{
 			return new List<CPluginVariable>
 			{
-				new CPluginVariable(VariableName.PunishCommand, typeof(string), _punishCommand),
-				new CPluginVariable(VariableName.ForgiveCommand, typeof(string), _forgiveCommand),
-				new CPluginVariable(VariableName.ShameCommand, typeof(string), _shameCommand),
+				new CPluginVariable(VariableName.PunishCommand, typeof(string[]), _punishCommand),
+				new CPluginVariable(VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
+				new CPluginVariable(VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
@@ -281,23 +290,23 @@ namespace PRoConEvents
 			switch (variable)
 			{
 				case VariableName.PunishCommand:
-					_punishCommand = value;
+					_punishCommand = value.ToArray();
 					break;
 
 				case VariableName.ForgiveCommand:
-					_forgiveCommand = value;
+					_forgiveCommand = value.ToArray();
 					break;
 
 				case VariableName.ShameCommand:
-					_shameCommand = value;
+					_shameCommand = value.ToArray();
 					break;
 
 				case VariableName.KillerMessages:
-					_killerMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					_killerMessages = value.ToArray();
 					break;
 
 				case VariableName.VictimMessages:
-					_victimMessages = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					_victimMessages = value.ToArray();
 					break;
 
 				case VariableName.PunishedMessage:
@@ -367,7 +376,7 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.Whitelist:
-					_whitelist = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+					_whitelist = value.ToArray();
 					break;
 
 				case VariableName.ShouldSuicideCountAsATeamKill:
@@ -560,15 +569,20 @@ namespace PRoConEvents
 			NotifyVictim(killerName, victimName);
 		}
 
+		private bool AreEqual(string s1, string s2)
+		{
+			return s1.Equals(s2, StringComparison.OrdinalIgnoreCase);
+		}
+
 		private void OnChat(string player, string message)
 		{
-			if (message == _shameCommand)
+			if (_shameCommand.Any(c => AreEqual(c, message)))
 				ShamePlayer(player);
 
-			if (message == _punishCommand)
+			if (_punishCommand.Any(c => AreEqual(c, message)))
 				PunishKillerOf(player);
 
-			if (message == _forgiveCommand)
+			if (_forgiveCommand.Any(c => AreEqual(c, message)))
 				ForgiveKillerOf(player);
 		}
 
