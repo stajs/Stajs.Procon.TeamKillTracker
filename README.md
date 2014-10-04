@@ -51,6 +51,12 @@ Commands can be issued in global, team, or squad chat.
 |Description|Useful for testing other plugin settings and messages. Allows a player to trigger a "team kill" by suiciding.|
 |Default&nbsp;value|`No`|
 
+|Trace level|&nbsp;|
+|:--|:---|
+|Description|What player messages should also be sent to the Procon `Chat` tab?|
+|Default&nbsp;value|`SayAndYell`|
+
+
 ### Messages
 
 |Killer|&nbsp;|
