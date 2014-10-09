@@ -13,18 +13,49 @@ namespace PRoConEvents
 		{
 			return s.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
 		}
+
+		public static T ToEnum<T>(this string s)
+		{
+			if (string.IsNullOrEmpty(s))
+				return default(T);
+
+			return (T)Enum.Parse(typeof(T), s);
+		}
 	}
 
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
 	{
 
 		public const string Author = "stajs";
-		public const string Version = "3.0.0.0";
+		public const string Version = "3.1.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
+
+		private enum PunishLimitEnabled
+		{
+			Yes,
+			No,
+			YesWhenPlayerCountOverThreshold
+		}
+
+		private enum Protect
+		{
+			NoOne,
+			Admins,
+			Whitelist,
+			AdminsAndWhitelist
+		}
+
+		private enum Trace
+		{
+			Off,
+			Say,
+			Yell,
+			SayAndYell
+		}
 
 		private struct VariableGroup
 		{
@@ -49,6 +80,7 @@ namespace PRoConEvents
 			public const string PunishWindow = "Punish window (seconds)";
 			public const string HasPunishLimit = "Kick after punish limit reached?";
 			public const string PunishLimit = "Punish limit";
+			public const string PlayerCountThresholdForKick = "Player count threshold for kick";
 			public const string Protected = "Who should be protected?";
 			public const string Whitelist = "Whitelist";
 			public const string ShameAllOnRoundEnd = "Shame all on round end?";
@@ -97,8 +129,9 @@ namespace PRoConEvents
 			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
 			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
 			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
-			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes },
+			{ VariableName.HasPunishLimit, PunishLimitEnabled.Yes },
 			{ VariableName.PunishLimit, 5 },
+			{ VariableName.PlayerCountThresholdForKick, 10 },
 			{ VariableName.Protected, Protect.Admins },
 			{ VariableName.Whitelist, new string[] {} },
 			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes },
@@ -118,7 +151,7 @@ namespace PRoConEvents
 		private string _punishedMessage = Defaults[VariableName.PunishedMessage].ToString();
 		private string _forgivenMessage = Defaults[VariableName.ForgivenMessage].ToString();
 		private TimeSpan _punishWindow = (TimeSpan)Defaults[VariableName.PunishWindow];
-		private enumBoolYesNo _hasPunishLimit = (enumBoolYesNo)Defaults[VariableName.HasPunishLimit];
+		private PunishLimitEnabled _hasPunishLimit = (PunishLimitEnabled)Defaults[VariableName.HasPunishLimit];
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
 		private Protect _protect = (Protect)Defaults[VariableName.Protected];
 		private string[] _whitelist = (string[])Defaults[VariableName.Whitelist];
@@ -158,22 +191,6 @@ namespace PRoConEvents
 			public string Name { get; set; }
 			public int TeamKillCount { get; set; }
 			public TeamKillerStatus Status { get; set; }
-		}
-
-		private enum Protect
-		{
-			NoOne,
-			Admins,
-			Whitelist,
-			AdminsAndWhitelist
-		}
-
-		private enum Trace
-		{
-			Off,
-			Say,
-			Yell,
-			SayAndYell
 		}
 
 		#region IPRoConPluginInterface
@@ -248,7 +265,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
-				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
+				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -274,7 +291,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
 				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
-				new CPluginVariable(VariableName.HasPunishLimit, typeof(enumBoolYesNo), _hasPunishLimit),
+				new CPluginVariable(VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -353,7 +370,7 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.HasPunishLimit:
-					_hasPunishLimit = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					_hasPunishLimit = value.ToEnum<PunishLimitEnabled>();
 					break;
 
 				case VariableName.PunishLimit:
@@ -447,7 +464,7 @@ namespace PRoConEvents
 
 		private int GetPunishesLeftBeforeKick(string player)
 		{
-			if (_hasPunishLimit == enumBoolYesNo.No)
+			if (_hasPunishLimit == PunishLimitEnabled.No)
 				return int.MaxValue;
 
 			var totalPunishCount = GetAllTeamKillsByPlayer(player).Count(tk => tk.Status == TeamKillStatus.Punished);
@@ -502,7 +519,7 @@ namespace PRoConEvents
 				if (string.IsNullOrEmpty(m))
 					continue;
 
-				var punishesLeft = _hasPunishLimit == enumBoolYesNo.Yes
+				var punishesLeft = _hasPunishLimit == PunishLimitEnabled.Yes
 					? GetPunishesLeftBeforeKick(killer).ToString()
 					: string.Empty;
 
@@ -705,7 +722,7 @@ namespace PRoConEvents
 			var victim = kill.VictimName;
 
 			var shouldKick =
-				_hasPunishLimit == enumBoolYesNo.Yes			// Limit is active.
+				_hasPunishLimit == PunishLimitEnabled.Yes	// Limit is active.
 				&& GetPunishesLeftBeforeKick(killer) == 1;	// This is their last chance.
 
 			if (shouldKick)
