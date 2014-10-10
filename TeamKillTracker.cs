@@ -276,10 +276,11 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
 				new CPluginVariable(VariableGroup.Debug + VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
 			};
+
+			// Limits
 
 			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.HasPunishLimit)) + 1;
 
@@ -296,6 +297,13 @@ namespace PRoConEvents
 
 			if (_hasPunishLimit == PunishLimitEnabled.YesWhenPlayerCountOverThreshold)
 				list.Insert(insertAt, new CPluginVariable(VariableGroup.Limits + VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick));
+
+			// Protection
+			
+			insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.Protected)) + 1;
+
+			if (_protect == Protect.Whitelist || _protect == Protect.AdminsAndWhitelist)
+				list.Insert(insertAt, new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()));
 
 			return list;
 		}
