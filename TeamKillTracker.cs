@@ -22,6 +22,11 @@ namespace PRoConEvents
 
 			return (T)Enum.Parse(typeof(T), s);
 		}
+
+		public static bool ContainsIgnoreCase(this string[] array, string s)
+		{
+			return array.Contains(s, StringComparer.OrdinalIgnoreCase);
+		}
 	}
 
 	public class TeamKillTracker : PRoConPluginAPI, IPRoConPluginInterface
@@ -102,6 +107,8 @@ namespace PRoConEvents
 			public int VictimAutoForgivenKillerCount { get; set; }
 		}
 
+		#region Defaults
+
 		private static readonly Dictionary<string, object> Defaults = new Dictionary<string, object>
 		{
 			{ VariableName.PunishCommand, new [] { "!p", "!punish" } },
@@ -169,6 +176,8 @@ namespace PRoConEvents
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
 
 		private int? _playerCount = null;
+
+		#endregion
 
 		private enum TeamKillStatus
 		{
@@ -637,20 +646,15 @@ namespace PRoConEvents
 			NotifyVictim(killerName, victimName);
 		}
 
-		private bool AreEqual(string s1, string s2)
-		{
-			return s1.Equals(s2, StringComparison.OrdinalIgnoreCase);
-		}
-
 		private void OnChat(string player, string message)
 		{
-			if (_shameCommand.Any(c => AreEqual(c, message)))
+			if (_shameCommand.ContainsIgnoreCase(message))
 				ShamePlayer(player);
 
-			if (_punishCommand.Any(c => AreEqual(c, message)))
+			if (_punishCommand.ContainsIgnoreCase(message))
 				PunishKillerOf(player);
 
-			if (_forgiveCommand.Any(c => AreEqual(c, message)))
+			if (_forgiveCommand.ContainsIgnoreCase(message))
 				ForgiveKillerOf(player);
 		}
 
