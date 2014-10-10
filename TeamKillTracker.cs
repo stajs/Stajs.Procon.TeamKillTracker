@@ -443,7 +443,7 @@ namespace PRoConEvents
 					if (i > PlayerCountThresholdForKickMax)
 						i = PlayerCountThresholdForKickMax;
 
-					_punishLimit = i;
+					_playerCountThresholdForKick = i;
 
 					break;
 
