@@ -57,6 +57,27 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |Description|Determines what messages (if any) should appear in the Procon `Chat` tab.|
 |Default&nbsp;value|`SayAndYell`|
 
+### Limits
+
+|Kick after punish limit reached?|&nbsp;|
+|:--|:---|
+|Description|Should a team killer be kicked after reaching the punish limit?|
+|Default&nbsp;value|`Yes`|
+
+|Player count threshold for kick|&nbsp;|
+|:--|:---|
+|Description|How many players on the server before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 32|
+|Default&nbsp;value|`1`|
+
+|Punish limit|&nbsp;|
+|:--|:---|
+|Description|How many times a killer is allowed to be punished before being kicked.<br />Minimum: 1<br />Maximum: 20|
+|Default&nbsp;value|`5`|
+
+|Punish window (seconds)|&nbsp;|
+|:--|:---|
+|Description|How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.<br />Minimum: 20<br />Maximum: 120|
+|Default&nbsp;value|`45`|
 
 ### Messages
 
@@ -126,23 +147,6 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |:--|:---|
 |Description|Sent to the player who issued a shame command.|
 |Default&nbsp;value|`No team kills so far...`|
-
-### Limits
-
-|Punish window (seconds)|&nbsp;|
-|:--|:---|
-|Description|How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.<br />Minimum: 20<br />Maximum	120|
-|Default&nbsp;value|`45`|
-
-|Kick after punish limit reached?|&nbsp;|
-|:--|:---|
-|Description|Should a team killer be kicked after reaching the punish limit?|
-|Default&nbsp;value|`Yes`|
-
-|Punish limit|&nbsp;|
-|:--|:---|
-|Description|How many times a killer is allowed to be punished before being kicked.<br />Minimum: 1<br />Maximum	20|
-|Default&nbsp;value|`5`|
 
 ### Protection
 
