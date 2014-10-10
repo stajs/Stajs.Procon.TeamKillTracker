@@ -206,8 +206,6 @@ namespace PRoConEvents
 			var events = new[]
 			{
 				"OnLevelLoaded",
-				"OnLoadingLevel",
-				"OnLevelStarted",
 				"OnRoundOver",
 				"OnPlayerKilled",
 				"OnGlobalChat",
@@ -469,21 +467,9 @@ namespace PRoConEvents
 			OnChat(speaker, message);
 		}
 
-		public override void OnLoadingLevel(string mapFileName, int roundsPlayed, int roundsTotal)
-		{
-			WriteConsole("OnLoadingLevel " + mapFileName);
-		}
-
 		public override void OnLevelLoaded(string mapFileName, string gamemode, int roundsPlayed, int roundsTotal)
 		{
-			WriteConsole("OnLevelLoaded " + mapFileName + ", " + gamemode);
 			_teamKills = new List<TeamKill>();
-		}
-
-		// TODO: Confirm that this is round start.
-		public override void OnLevelStarted()
-		{
-			WriteConsole("OnLevelStarted");
 		}
 
 		public override void OnRoundOver(int winningTeamId)
