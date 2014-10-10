@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using PRoCon.Core;
+using PRoCon.Core.Players;
 using PRoCon.Core.Plugin;
 
 namespace PRoConEvents
@@ -33,6 +34,8 @@ namespace PRoConEvents
 		private const int PunishWindowMax = 120;
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
+		private const int PlayerCountThresholdForKickMin = 1;
+		private const int PlayerCountThresholdForKickMax = 64;
 
 		private enum PunishLimitEnabled
 		{
@@ -153,6 +156,7 @@ namespace PRoConEvents
 		private TimeSpan _punishWindow = (TimeSpan)Defaults[VariableName.PunishWindow];
 		private PunishLimitEnabled _hasPunishLimit = (PunishLimitEnabled)Defaults[VariableName.HasPunishLimit];
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
+		private int _playerCountThresholdForKick = (int)Defaults[VariableName.PlayerCountThresholdForKick];
 		private Protect _protect = (Protect)Defaults[VariableName.Protected];
 		private string[] _whitelist = (string[])Defaults[VariableName.Whitelist];
 		private enumBoolYesNo _shameAllOnRoundEnd = (enumBoolYesNo)Defaults[VariableName.ShameAllOnRoundEnd];
@@ -163,6 +167,8 @@ namespace PRoConEvents
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
+
+		private int? _playerCount = null;
 
 		private enum TeamKillStatus
 		{
@@ -206,7 +212,8 @@ namespace PRoConEvents
 				"OnPlayerKilled",
 				"OnGlobalChat",
 				"OnTeamChat",
-				"OnSquadChat"
+				"OnSquadChat",
+				"OnListPlayers"
 			};
 
 			this.RegisterEvents(this.GetType().Name, events);
@@ -221,6 +228,11 @@ namespace PRoConEvents
 		public void OnPluginDisable()
 		{
 			WriteConsole("^8Disabled.^0");
+		}
+		public override void OnListPlayers(List<CPlayerInfo> players, CPlayerSubset cpsSubset)
+		{
+			if (cpsSubset.Subset == CPlayerSubset.PlayerSubsetType.All)
+				_playerCount = players.Count;
 		}
 
 		public string GetPluginName()
@@ -250,7 +262,7 @@ namespace PRoConEvents
 
 		public List<CPluginVariable> GetDisplayPluginVariables()
 		{
-			return new List<CPluginVariable>
+			var list = new List<CPluginVariable>
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
@@ -264,14 +276,30 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
-				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
-				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
 				new CPluginVariable(VariableGroup.Debug + VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
 			};
+
+			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.HasPunishLimit)) + 1;
+
+			var limits = new List<CPluginVariable>
+			{
+				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
+				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
+			};
+
+			if (_hasPunishLimit != PunishLimitEnabled.No)
+			{
+				list.InsertRange(insertAt, limits);
+			}
+
+			if (_hasPunishLimit == PunishLimitEnabled.YesWhenPlayerCountOverThreshold)
+				list.Insert(insertAt, new CPluginVariable(VariableGroup.Limits + VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick));
+
+			return list;
 		}
 
 		public List<CPluginVariable> GetPluginVariables()
@@ -293,6 +321,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
 				new CPluginVariable(VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
+				new CPluginVariable(VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
@@ -383,6 +412,21 @@ namespace PRoConEvents
 
 					if (i > PunishLimitMax)
 						i = PunishLimitMax;
+
+					_punishLimit = i;
+
+					break;
+
+				case VariableName.PlayerCountThresholdForKick:
+
+					if (!int.TryParse(value, out i))
+						return;
+
+					if (i < PlayerCountThresholdForKickMin)
+						i = PlayerCountThresholdForKickMin;
+
+					if (i > PlayerCountThresholdForKickMax)
+						i = PlayerCountThresholdForKickMax;
 
 					_punishLimit = i;
 
