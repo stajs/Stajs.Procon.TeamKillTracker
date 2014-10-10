@@ -387,7 +387,7 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.ShameAllOnRoundEnd:
-					_shameAllOnRoundEnd = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					_shameAllOnRoundEnd = value.ToEnum<enumBoolYesNo>();
 					break;
 
 				case VariableName.NoOneToShameOnRoundEndMessage:
@@ -448,7 +448,7 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.Protected:
-					_protect = (Protect)Enum.Parse(typeof(Protect), value);
+					_protect = value.ToEnum<Protect>();
 					break;
 
 				case VariableName.Whitelist:
@@ -456,11 +456,11 @@ namespace PRoConEvents
 					break;
 
 				case VariableName.ShouldSuicideCountAsATeamKill:
-					_shouldSuicideCountAsATeamKill = value == "Yes" ? enumBoolYesNo.Yes : enumBoolYesNo.No;
+					_shouldSuicideCountAsATeamKill = value.ToEnum<enumBoolYesNo>();
 					break;
 
 				case VariableName.TraceLevel:
-					_traceLevel = (Trace)Enum.Parse(typeof(Trace), value);
+					_traceLevel = value.ToEnum<Trace>();
 					break;
 			}
 		}
