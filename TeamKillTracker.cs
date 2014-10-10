@@ -760,16 +760,35 @@ namespace PRoConEvents
 			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", "20", "1", "1", "procon.protected.send", "admin.kickPlayer", player, "Kicked for reaching team kill limit.");
 		}
 
+		private bool ShouldKick(string killer)
+		{
+			// This is their last chance
+			// TODO: Need to handle cases (including messages) where TKs are racked up before threshold is reached.
+			var hasReachedLimit = GetPunishesLeftBeforeKick(killer) == 1;
+
+			switch (_hasPunishLimit)
+			{
+				case PunishLimitEnabled.Yes:
+					return hasReachedLimit;
+
+				case PunishLimitEnabled.YesWhenPlayerCountOverThreshold:
+
+					if (!_playerCount.HasValue)
+						return false;
+
+					return hasReachedLimit && _playerCount >= _playerCountThresholdForKick;
+
+				default: // Including PunishLimitEnabled.No:
+					return false;
+			}
+		}
+
 		private void Punish(TeamKill kill)
 		{
 			var killer = kill.KillerName;
 			var victim = kill.VictimName;
 
-			var shouldKick =
-				_hasPunishLimit == PunishLimitEnabled.Yes	// Limit is active.
-				&& GetPunishesLeftBeforeKick(killer) == 1;	// This is their last chance.
-
-			if (shouldKick)
+			if (ShouldKick(killer))
 			{
 				Kick(killer);
 				return;
