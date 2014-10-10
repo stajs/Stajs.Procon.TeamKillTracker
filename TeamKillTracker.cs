@@ -682,7 +682,7 @@ namespace PRoConEvents
 			var kills = GetPendingTeamKillsForVictim(victim);
 
 			if (!kills.Any())
-				AdminSayPlayer(victim, ReplaceStaches(_noOneToPunishMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString())));
+				AdminSayPlayer(victim, _noOneToPunishMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString()));
 
 			if (kills.Count > 1)
 				WriteConsole("Players found to punish: " + kills.Count);
@@ -698,7 +698,7 @@ namespace PRoConEvents
 			var kills = GetPendingTeamKillsForVictim(victim);
 
 			if (!kills.Any())
-				AdminSayPlayer(victim, ReplaceStaches(_noOneToForgiveMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString())));
+				AdminSayPlayer(victim, _noOneToForgiveMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString()));
 
 			if (kills.Count > 1)
 				WriteConsole("Players found to forgive: " + kills.Count);
