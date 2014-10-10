@@ -272,17 +272,28 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
-				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
-				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(PunishLimitEnabled)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
 				new CPluginVariable(VariableGroup.Debug + VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
 			};
 
+			// Shame
+
+			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.ShameAllOnRoundEnd)) + 1;
+
+			var shame = new List<CPluginVariable>
+			{
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage)
+			};
+
+			if (_shameAllOnRoundEnd == enumBoolYesNo.Yes)
+				list.InsertRange(insertAt, shame);
+
 			// Limits
 
-			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.HasPunishLimit)) + 1;
+			insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.HasPunishLimit)) + 1;
 
 			var limits = new List<CPluginVariable>
 			{
@@ -291,9 +302,7 @@ namespace PRoConEvents
 			};
 
 			if (_hasPunishLimit != PunishLimitEnabled.No)
-			{
 				list.InsertRange(insertAt, limits);
-			}
 
 			if (_hasPunishLimit == PunishLimitEnabled.YesWhenPlayerCountOverThreshold)
 				list.Insert(insertAt, new CPluginVariable(VariableGroup.Limits + VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick));
@@ -304,7 +313,7 @@ namespace PRoConEvents
 
 			if (_protect == Protect.Whitelist || _protect == Protect.AdminsAndWhitelist)
 				list.Insert(insertAt, new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()));
-
+			
 			return list;
 		}
 
