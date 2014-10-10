@@ -40,7 +40,7 @@ namespace PRoConEvents
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
 		private const int PlayerCountThresholdForKickMin = 1;
-		private const int PlayerCountThresholdForKickMax = 64;
+		private const int PlayerCountThresholdForKickMax = 32;
 
 		private enum PunishLimitEnabled
 		{
@@ -117,9 +117,9 @@ namespace PRoConEvents
 			{
 				VariableName.KillerMessages, new []
 				{
-					"You TEAM KILLED {victim}.",
-					"@You TEAM KILLED {victim}.",
-					"Watch your fire! Punishes left before kick: {punishesLeft}."
+					"You TEAM KILLED {victim}. Watch your fire!",
+					"@You TEAM KILLED {victim}. Watch your fire!",
+					"+Punishes left before kick: {punishesLeft}."
 				}
 			},
 			{
@@ -129,7 +129,8 @@ namespace PRoConEvents
 					"@TEAM KILLED by {killer}.",
 					"Their TK's: you ({victimCount}) team ({teamCount}).",
 					"You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).",
-					"Punishes left before kick: {punishesLeft}.",
+					"+Punishes left before kick: {punishesLeft}.",
+					"-Waiting on more players to join before enabling kick.",
 					"!p to punish, !f to forgive.",
 					"@!p to punish, !f to forgive."
 				}
@@ -141,7 +142,7 @@ namespace PRoConEvents
 			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
 			{ VariableName.HasPunishLimit, PunishLimitEnabled.Yes },
 			{ VariableName.PunishLimit, 5 },
-			{ VariableName.PlayerCountThresholdForKick, 10 },
+			{ VariableName.PlayerCountThresholdForKick, 1 },
 			{ VariableName.Protected, Protect.Admins },
 			{ VariableName.Whitelist, new string[] {} },
 			{ VariableName.ShameAllOnRoundEnd, enumBoolYesNo.Yes },
@@ -317,12 +318,12 @@ namespace PRoConEvents
 				list.Insert(insertAt, new CPluginVariable(VariableGroup.Limits + VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick));
 
 			// Protection
-			
+
 			insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.Protected)) + 1;
 
 			if (_protect == Protect.Whitelist || _protect == Protect.AdminsAndWhitelist)
 				list.Insert(insertAt, new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()));
-			
+
 			return list;
 		}
 
@@ -518,10 +519,10 @@ namespace PRoConEvents
 				.ForEach(tk => tk.Status = TeamKillStatus.AutoForgiven);
 		}
 
-		private int GetPunishesLeftBeforeKick(string player)
+		private int? GetPunishesLeft(string player)
 		{
 			if (_hasPunishLimit == PunishLimitEnabled.No)
-				return int.MaxValue;
+				return null;
 
 			var totalPunishCount = GetAllTeamKillsByPlayer(player).Count(tk => tk.Status == TeamKillStatus.Punished);
 			var punishesLeft = _punishLimit - totalPunishCount;
@@ -567,6 +568,30 @@ namespace PRoConEvents
 			{
 				var m = CPluginVariable.Decode(message);
 
+				var shouldSendMessageWhenPlayerCountEqualOrOverThreshold = m.StartsWith("+");
+				var shouldSendMessageWhenPlayerCountUnderThreshold = m.StartsWith("~");
+
+				if (shouldSendMessageWhenPlayerCountEqualOrOverThreshold)
+				{
+					if (_playerCount < _playerCountThresholdForKick)
+						continue;
+
+					m = m.Substring(1).Trim();
+
+					if (string.IsNullOrEmpty(m))
+						continue;
+				}
+				else if (shouldSendMessageWhenPlayerCountUnderThreshold)
+				{
+					if (_playerCount >= _playerCountThresholdForKick)
+						continue;
+
+					m = m.Substring(1).Trim();
+
+					if (string.IsNullOrEmpty(m))
+						continue;
+				}
+
 				var shouldYell = m.StartsWith("@");
 
 				if (shouldYell)
@@ -575,9 +600,9 @@ namespace PRoConEvents
 				if (string.IsNullOrEmpty(m))
 					continue;
 
-				var punishesLeft = _hasPunishLimit == PunishLimitEnabled.Yes
-					? GetPunishesLeftBeforeKick(killer).ToString()
-					: string.Empty;
+				var punishesLeft = _hasPunishLimit == PunishLimitEnabled.No
+					? string.Empty
+					: GetPunishesLeft(killer).ToString();
 
 				m = m
 					.Replace("{killer}", killer)
@@ -770,8 +795,7 @@ namespace PRoConEvents
 		private bool ShouldKick(string killer)
 		{
 			// This is their last chance
-			// TODO: Need to handle cases (including messages) where TKs are racked up before threshold is reached.
-			var hasReachedLimit = GetPunishesLeftBeforeKick(killer) == 1;
+			var hasReachedLimit = GetPunishesLeft(killer) == 1;
 
 			switch (_hasPunishLimit)
 			{
