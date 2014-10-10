@@ -66,7 +66,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Player count threshold for kick|&nbsp;|
 |:--|:---|
-|Description|How many players on the server before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 32|
+|Description|How many players are required before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 32|
 |Default&nbsp;value|`1`|
 
 |Punish limit|&nbsp;|
@@ -81,10 +81,18 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 ### Messages
 
+For `Killer` and `Victim` messages, the following prefixes may be used.
+
+- `+` to say the message if a threshold is required for kick and the threshold has been reached.
+- `-` to say the message if a threshold is required for kick and the threshold has not been reached.
+- `@` to yell the message.
+- `+@` to yell the message if a threshold is required for kick and the threshold has been reached.
+- `-@` to yell the message if a threshold is required for kick and the threshold has not been reached.
+
 |Killer|&nbsp;|
 |:--|:---|
-|Description|Sent to the killer when a team kill is detected (one line per message). Prefix the line with `@` to yell.|
-|Default&nbsp;value|- `You TEAM KILLED {victim}.`<br />- `@You TEAM KILLED {victim}.`<br />- `Watch your fire! Punishes left before kick: {punishesLeft}.`|
+|Description|Sent to the killer when a team kill is detected (one line per message). See note about prefixes above.|
+|Default&nbsp;value|- `You TEAM KILLED {victim}. Watch your fire!`<br />- `@You TEAM KILLED {victim}. Watch your fire!`<br />- `+Punishes left before kick: {punishesLeft}.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 |`{victimCount}`|The number of times the killer has team killed the victim.|
@@ -96,8 +104,8 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Victim|&nbsp;|
 |:--|:---|
-|Description|Sent to the victim when a team kill is detected (one line per message). Prefix the line with `@` to yell.|
-|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `Punishes left before kick: {punishesLeft}.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
+|Description|Sent to the victim when a team kill is detected (one line per message). See note about prefixes above.|
+|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `+Punishes left before kick: {punishesLeft}.`<br />- `-Waiting on more players to join before enabling kick.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 |`{victimCount}`|The number of times the killer has team killed the victim.|
