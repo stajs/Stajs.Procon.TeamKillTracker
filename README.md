@@ -66,7 +66,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Player count threshold for kick|&nbsp;|
 |:--|:---|
-|Description|How many players are required before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 32|
+|Description|How many players are required before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 64|
 |Default&nbsp;value|`1`|
 
 |Punish limit|&nbsp;|
