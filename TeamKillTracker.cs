@@ -40,7 +40,7 @@ namespace PRoConEvents
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
 		private const int PlayerCountThresholdForKickMin = 1;
-		private const int PlayerCountThresholdForKickMax = 32;
+		private const int PlayerCountThresholdForKickMax = 64;
 
 		private enum PunishLimitEnabled
 		{
