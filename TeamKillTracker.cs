@@ -53,7 +53,7 @@ namespace PRoConEvents
 			AdminsAndWhitelist
 		}
 
-		private enum Trace
+		private enum Chat
 		{
 			Off,
 			Say,
@@ -91,7 +91,7 @@ namespace PRoConEvents
 			public const string NoOneToShameOnRoundEndMessage = "No one to shame on round end message";
 			public const string NoOneToShameMessage = "No one to shame message";
 			public const string ShouldSuicideCountAsATeamKill = "Should suicide count as a team kill?";
-			public const string TraceLevel = "Trace level";
+			public const string OutputToChat = "Output to Chat";
 		}
 
 		private class Stats
@@ -145,7 +145,7 @@ namespace PRoConEvents
 			{ VariableName.NoOneToShameOnRoundEndMessage, "Wow! We got through a round without a single teamkill!" },
 			{ VariableName.NoOneToShameMessage, "No team kills so far..." },
 			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No },
-			{ VariableName.TraceLevel, Trace.SayAndYell },
+			{ VariableName.OutputToChat, Chat.SayAndYell },
 		};
 
 		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
@@ -167,7 +167,7 @@ namespace PRoConEvents
 		private string _noOneToShameOnRoundEndMessage = Defaults[VariableName.NoOneToShameOnRoundEndMessage].ToString();
 		private string _noOneToShameMessage = Defaults[VariableName.NoOneToShameMessage].ToString();
 		private enumBoolYesNo _shouldSuicideCountAsATeamKill = (enumBoolYesNo)Defaults[VariableName.ShouldSuicideCountAsATeamKill];
-		private Trace _traceLevel = (Trace)Defaults[VariableName.TraceLevel];
+		private Chat _outputToChat = (Chat)Defaults[VariableName.OutputToChat];
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -282,7 +282,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(enumBoolYesNo)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
-				new CPluginVariable(VariableGroup.Debug + VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
+				new CPluginVariable(VariableGroup.Debug + VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
 			};
 
 			// Shame
@@ -349,7 +349,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
-				new CPluginVariable(VariableName.TraceLevel, CreateEnumString(typeof(Trace)), _traceLevel.ToString())
+				new CPluginVariable(VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
 			};
 		}
 
@@ -468,8 +468,8 @@ namespace PRoConEvents
 					_shouldSuicideCountAsATeamKill = value.ToEnum<enumBoolYesNo>();
 					break;
 
-				case VariableName.TraceLevel:
-					_traceLevel = value.ToEnum<Trace>();
+				case VariableName.OutputToChat:
+					_outputToChat = value.ToEnum<Chat>();
 					break;
 			}
 		}
@@ -939,7 +939,7 @@ namespace PRoConEvents
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.send", "admin.say", message, "all");
 
-			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
+			if (_outputToChat == Chat.Say || _outputToChat == Chat.SayAndYell)
 				ExecuteCommand("procon.protected.chat.write", "TeamKillTracker > Say:" + message);
 		}
 
@@ -948,7 +948,7 @@ namespace PRoConEvents
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.send", "admin.say", message, "player", player);
 
-			if (_traceLevel == Trace.Say || _traceLevel == Trace.SayAndYell)
+			if (_outputToChat == Chat.Say || _outputToChat == Chat.SayAndYell)
 				ExecuteCommand("procon.protected.chat.write", "TeamKillTracker > Say > " + player + ": " + message);
 		}
 
@@ -957,7 +957,7 @@ namespace PRoConEvents
 			message = ReplaceStaches(message);
 			ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.send", "admin.yell", message, duration.ToString(), "player", player);
 
-			if (_traceLevel == Trace.Yell || _traceLevel == Trace.SayAndYell)
+			if (_outputToChat == Chat.Yell || _outputToChat == Chat.SayAndYell)
 				ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "TeamKillTracker > Yell > " + player + ": " + message);
 		}
 
