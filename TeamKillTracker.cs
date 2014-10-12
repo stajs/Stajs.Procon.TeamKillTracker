@@ -115,7 +115,7 @@ namespace PRoConEvents
 				{
 					"You TEAM KILLED {victim}. Watch your fire!",
 					"@You TEAM KILLED {victim}. Watch your fire!",
-					"+Punishes left before kick: {punishesLeft}."
+					">Punishes left before kick: {punishesLeft}."
 				}
 			},
 			{
@@ -125,8 +125,8 @@ namespace PRoConEvents
 					"@TEAM KILLED by {killer}.",
 					"Their TK's: you ({victimCount}) team ({teamCount}).",
 					"You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).",
-					"+Punishes left before kick: {punishesLeft}.",
-					"-Waiting on more players to join before enabling kick.",
+					">Punishes left before kick: {punishesLeft}.",
+					"<Waiting on more players to join before enabling kick.",
 					"!p to punish, !f to forgive.",
 					"@!p to punish, !f to forgive."
 				}
