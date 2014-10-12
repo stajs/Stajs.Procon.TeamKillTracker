@@ -83,7 +83,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 For `Killer` and `Victim` messages, the following prefixes may be used.
 
-- >+` to say the message if a threshold is required for kick and the threshold has been reached.
+- `>` to say the message if a threshold is required for kick and the threshold has been reached.
 - `<` to say the message if a threshold is required for kick and the threshold has not been reached.
 - `@` to yell the message.
 - `>@` to yell the message if a threshold is required for kick and the threshold has been reached.
