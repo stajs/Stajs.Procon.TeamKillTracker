@@ -140,6 +140,13 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 
+|Apologized|&nbsp;|
+|:--|:---|
+|Description|Sent to both the killer and victim when a sorry command is successful.|
+|Default&nbsp;value|`{killer} apologized to {victim}.`|
+|`{killer}`|Player name of killer.|
+|`{victim}`|Player name of victim.|
+
 |No one to punish|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a punish command that was unsuccessful.|
