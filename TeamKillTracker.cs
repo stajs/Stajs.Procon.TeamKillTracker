@@ -74,7 +74,7 @@ namespace PRoConEvents
 		{
 			public const string PunishCommand = "Punish";
 			public const string ForgiveCommand = "Forgive";
-			public const string AllowKillersToApologizeToAvoidPunishmentCommand = "Allow killers to apologize to avoid punishment?";
+			public const string AllowKillersToApologizeToAvoidPunishment = "Allow killers to apologize to avoid punishment?";
 			public const string SorryCommand = "Sorry";
 			public const string ShameCommand = "Shame";
 			public const string KillerMessages = "Killer";
@@ -111,7 +111,7 @@ namespace PRoConEvents
 		{
 			{ VariableName.PunishCommand, new [] { "!p", "!punish" } },
 			{ VariableName.ForgiveCommand, new [] { "!f", "!forgive" } },
-			{ VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, enumBoolYesNo.No },
+			{ VariableName.AllowKillersToApologizeToAvoidPunishment, enumBoolYesNo.No },
 			{ VariableName.SorryCommand, new [] { "!sorry", "!mybad" } },
 			{ VariableName.ShameCommand, new [] { "!shame" } },
 			{
@@ -154,7 +154,7 @@ namespace PRoConEvents
 
 		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
 		private string[] _forgiveCommand = (string[])Defaults[VariableName.ForgiveCommand];
-		private enumBoolYesNo _allowKillersToApologizeToAvoidPunishmentCommand = (enumBoolYesNo)Defaults[VariableName.AllowKillersToApologizeToAvoidPunishmentCommand];
+		private enumBoolYesNo _allowKillersToApologizeToAvoidPunishment = (enumBoolYesNo)Defaults[VariableName.AllowKillersToApologizeToAvoidPunishment];
 		private string[] _sorryCommand = (string[])Defaults[VariableName.SorryCommand];
 		private string[] _shameCommand = (string[])Defaults[VariableName.ShameCommand];
 		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
@@ -187,7 +187,8 @@ namespace PRoConEvents
 			Pending,
 			Punished,
 			Forgiven,
-			AutoForgiven
+			AutoForgiven,
+			Apologized
 		}
 
 		private class TeamKill
@@ -276,7 +277,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
-				new CPluginVariable(VariableGroup.Commands + VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, typeof(enumBoolYesNo), _allowKillersToApologizeToAvoidPunishmentCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.AllowKillersToApologizeToAvoidPunishment, typeof(enumBoolYesNo), _allowKillersToApologizeToAvoidPunishment),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -294,14 +295,14 @@ namespace PRoConEvents
 
 			// Sorry
 
-			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.AllowKillersToApologizeToAvoidPunishmentCommand)) + 1;
+			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.AllowKillersToApologizeToAvoidPunishment)) + 1;
 
 			var sorry = new List<CPluginVariable>
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.SorryCommand, typeof(string[]), _sorryCommand)
 			};
 
-			if (_allowKillersToApologizeToAvoidPunishmentCommand == enumBoolYesNo.Yes)
+			if (_allowKillersToApologizeToAvoidPunishment == enumBoolYesNo.Yes)
 				list.InsertRange(insertAt, sorry);
 
 			// Shame
@@ -351,7 +352,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
-				new CPluginVariable(VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, CreateEnumString(typeof(enumBoolYesNo)), _allowKillersToApologizeToAvoidPunishmentCommand.ToString()),
+				new CPluginVariable(VariableName.AllowKillersToApologizeToAvoidPunishment, CreateEnumString(typeof(enumBoolYesNo)), _allowKillersToApologizeToAvoidPunishment.ToString()),
 				new CPluginVariable(VariableName.SorryCommand, typeof(string[]), _sorryCommand),
 				new CPluginVariable(VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -388,8 +389,8 @@ namespace PRoConEvents
 					_forgiveCommand = value.ToArray();
 					break;
 
-				case VariableName.AllowKillersToApologizeToAvoidPunishmentCommand:
-					_allowKillersToApologizeToAvoidPunishmentCommand = value.ToEnum<enumBoolYesNo>();
+				case VariableName.AllowKillersToApologizeToAvoidPunishment:
+					_allowKillersToApologizeToAvoidPunishment = value.ToEnum<enumBoolYesNo>();
 					break;
 
 				case VariableName.SorryCommand:
@@ -712,6 +713,9 @@ namespace PRoConEvents
 
 			if (_forgiveCommand.ContainsIgnoreCase(message))
 				ForgiveKillerOf(player);
+
+			if (_allowKillersToApologizeToAvoidPunishment == enumBoolYesNo.Yes && _sorryCommand.ContainsIgnoreCase(message))
+				ApologizeToVictimsOf(player);
 		}
 
 		private void AutoForgivePastPunishWindow()
@@ -728,6 +732,13 @@ namespace PRoConEvents
 		{
 			return _teamKills
 				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.VictimName == victim)
+				.ToList();
+		}
+
+		private List<TeamKill> GetPendingTeamKillsForKiller(string killer)
+		{
+			return _teamKills
+				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.KillerName == killer)
 				.ToList();
 		}
 
@@ -761,6 +772,22 @@ namespace PRoConEvents
 
 			foreach (var kill in kills)
 				Forgive(kill);
+		}
+
+		private void ApologizeToVictimsOf(string killer)
+		{
+			AutoForgivePastPunishWindow();
+
+			var kills = GetPendingTeamKillsForKiller(killer);
+
+			if (!kills.Any())
+				AdminSayPlayer(killer, "Apology rejected! No recent kills."); // TODO: Have a setting for this message.
+
+			if (kills.Count > 1)
+				WriteConsole("Players found to apologize to: " + kills.Count);
+
+			foreach (var kill in kills)
+				Apologize(kill);
 		}
 
 		// TODO: figure out how to get a list of admins rather than check on demand.
@@ -812,6 +839,7 @@ namespace PRoConEvents
 			// Re-set their team kills in case they re-join.
 			_teamKills.RemoveAll(tk => tk.KillerName == player);
 
+			// TODO: Have a setting for this message.
 			AdminSayAll("Too many team kills for " + player + ". Boot incoming!");
 
 			if (IsProtected(player))
@@ -874,27 +902,42 @@ namespace PRoConEvents
 			kill.Status = TeamKillStatus.Forgiven;
 		}
 
+		private void Apologize(TeamKill kill)
+		{
+			var killer = kill.KillerName;
+			var victim = kill.VictimName;
+
+			var message = "{killer} says sorry to {victim}." // TODO: Have a setting for this message.
+				.Replace("{killer}", killer)
+				.Replace("{victim}", victim);
+
+			AdminSayPlayer(killer, message);
+			AdminSayPlayer(victim, message);
+
+			kill.Status = TeamKillStatus.Apologized;
+		}
+
 		private List<TeamKiller> GetWorstTeamKillers()
 		{
 			var worstTeamKillers = _teamKills
-					.GroupBy(tk => tk.KillerName)
-					.Select(g => new TeamKiller
-					{
-						Name = g.Key,
-						TeamKillCount = g.Count(),
-						Status = TeamKillerStatus.Survived
-					})
-					.OrderByDescending(tk => tk.TeamKillCount)
-					.Take(3)
-					.ToList();
+				.GroupBy(tk => tk.KillerName)
+				.Select(g => new TeamKiller
+				{
+					Name = g.Key,
+					TeamKillCount = g.Count(),
+					Status = TeamKillerStatus.Survived
+				})
+				.OrderByDescending(tk => tk.TeamKillCount)
+				.Take(3)
+				.ToList();
 
 			worstTeamKillers
-				 .AddRange(_kickedPlayers);
+				.AddRange(_kickedPlayers);
 
 			worstTeamKillers = worstTeamKillers
-				 .OrderByDescending(tk => tk.TeamKillCount)
-				 .Take(3)
-				 .ToList();
+				.OrderByDescending(tk => tk.TeamKillCount)
+				.Take(3)
+				.ToList();
 
 			return worstTeamKillers;
 		}
@@ -908,10 +951,10 @@ namespace PRoConEvents
 				var killer = killers[i];
 
 				sb.AppendFormat("{0} ({1}){2}{3}",
-					  killer.Name,
-					  killer.TeamKillCount,
-					  killer.Status == TeamKillerStatus.Kicked ? " kicked" : string.Empty,
-					  i + 1 < killers.Count ? ", " : ".");
+					killer.Name,
+					killer.TeamKillCount,
+					killer.Status == TeamKillerStatus.Kicked ? " kicked" : string.Empty,
+					i + 1 < killers.Count ? ", " : ".");
 			}
 
 			return "Worst team killers: " + sb;
