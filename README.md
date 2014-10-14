@@ -70,6 +70,11 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 ### Limits
 
+|Punish window (seconds)|&nbsp;|
+|:--|:---|
+|Description|How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.<br />Minimum: 20<br />Maximum: 120|
+|Default&nbsp;value|`45`|
+
 |Kick after punish limit reached?|&nbsp;|
 |:--|:---|
 |Description|Should a team killer be kicked after reaching the punish limit? If set to `Yes`, the following settings are enabled:<br />- `Player count threshold for kick`<br />- `Punish limit`|
@@ -84,11 +89,6 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |:--|:---|
 |Description|How many times a killer is allowed to be punished before being kicked.<br />Minimum: 1<br />Maximum: 20|
 |Default&nbsp;value|`5`|
-
-|Punish window (seconds)|&nbsp;|
-|:--|:---|
-|Description|How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.<br />Minimum: 20<br />Maximum: 120|
-|Default&nbsp;value|`45`|
 
 ### Messages
 
