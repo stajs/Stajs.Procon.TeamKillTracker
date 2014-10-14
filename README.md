@@ -43,7 +43,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Allow killers to apologize to avoid punishment?|&nbsp;|
 |:--|:---|
-|Description|If this is set to `Yes`, the `Sorry` command is enabled.|
+|Description|If set to `Yes`, the `Sorry` command is enabled.|
 |Default&nbsp;value|`No`|
 
 |Sorry|&nbsp;|
@@ -72,7 +72,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Kick after punish limit reached?|&nbsp;|
 |:--|:---|
-|Description|Should a team killer be kicked after reaching the punish limit?|
+|Description|Should a team killer be kicked after reaching the punish limit? If set to `Yes`, the following settings are enabled:<br />- `Player count threshold for kick`<br />- `Punish limit`|
 |Default&nbsp;value|`Yes`|
 
 |Player count threshold for kick|&nbsp;|
@@ -171,7 +171,7 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 
 |Who should be protected?|&nbsp;|
 |:--|:---|
-|Description|Who, if any, should be protected from punishment.|
+|Description|Who, if any, should be protected from punishment. If set to `Whitelist` or `AdminsAndWhitelist`, `Whitelist` is enabled.|
 |Default&nbsp;value|`Admins`|
 
 |Whitelist|&nbsp;|
