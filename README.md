@@ -9,6 +9,7 @@ Track team kill statistics and allow self-management of team killers.
 - Allows victims to forgive or punish (slay) their killers.
 - Optional kick for team killers after reaching a punish limit.
 - Configurable commands and messages.
+- Optionally allow killers to apologize to avoid punishment.
 - Optionally protect admins or whitelisted players from being punished.
 - Shame the worst team killers at the end of the round or on demand.
 
@@ -39,6 +40,16 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |:--|:---|
 |Description|Forgive a team killer.|
 |Default&nbsp;value|- `!f`<br />- `!forgive`|
+
+|Allow killers to apologize to avoid punishment?|&nbsp;|
+|:--|:---|
+|Description|If this is set to `Yes`, the `Sorry` command is enabled.|
+|Default&nbsp;value|`No`|
+
+|Sorry|&nbsp;|
+|:--|:---|
+|Description|If `Allow killers to apologize to avoid punishment?` is set to `Yes` a killer can avoid punishment with this command.|
+|Default&nbsp;value|- `!sorry`<br />- `!mybad`|
 
 |Shame|&nbsp;|
 |:--|:---|
