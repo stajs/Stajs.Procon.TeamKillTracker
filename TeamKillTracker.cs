@@ -36,7 +36,7 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.2.0.0";
+		public const string Version = "3.3.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -74,6 +74,7 @@ namespace PRoConEvents
 		{
 			public const string PunishCommand = "Punish";
 			public const string ForgiveCommand = "Forgive";
+			public const string SorryCommand = "Sorry";
 			public const string ShameCommand = "Shame";
 			public const string KillerMessages = "Killer";
 			public const string VictimMessages = "Victim";
@@ -109,6 +110,7 @@ namespace PRoConEvents
 		{
 			{ VariableName.PunishCommand, new [] { "!p", "!punish" } },
 			{ VariableName.ForgiveCommand, new [] { "!f", "!forgive" } },
+			{ VariableName.SorryCommand, new [] { "!sorry", "!mybad" } },
 			{ VariableName.ShameCommand, new [] { "!shame" } },
 			{
 				VariableName.KillerMessages, new []
@@ -150,6 +152,7 @@ namespace PRoConEvents
 
 		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
 		private string[] _forgiveCommand = (string[])Defaults[VariableName.ForgiveCommand];
+		private string[] _sorryCommand = (string[])Defaults[VariableName.SorryCommand];
 		private string[] _shameCommand = (string[])Defaults[VariableName.ShameCommand];
 		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
 		private string[] _victimMessages = (string[])Defaults[VariableName.VictimMessages];
@@ -270,6 +273,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.SorryCommand, typeof(string[]), _sorryCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -332,6 +336,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
+				new CPluginVariable(VariableName.SorryCommand, typeof(string[]), _sorryCommand),
 				new CPluginVariable(VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -365,6 +370,10 @@ namespace PRoConEvents
 
 				case VariableName.ForgiveCommand:
 					_forgiveCommand = value.ToArray();
+					break;
+
+				case VariableName.SorryCommand:
+					_sorryCommand = value.ToArray();
 					break;
 
 				case VariableName.ShameCommand:
