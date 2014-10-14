@@ -85,6 +85,7 @@ namespace PRoConEvents
 			public const string PunishedMessage = "Punished";
 			public const string ForgivenMessage = "Forgiven";
 			public const string ApologizedMessage = "Apologized";
+			public const string KickMessage = "Kick";
 			public const string PunishWindow = "Punish window (seconds)";
 			public const string HasPunishLimit = "Kick after punish limit reached?";
 			public const string PunishLimit = "Punish limit";
@@ -143,6 +144,7 @@ namespace PRoConEvents
 			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
 			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
 			{ VariableName.ApologizedMessage, "{killer} apologized to {victim}." },
+			{ VariableName.KickMessage, "Too many team kills for {killer}. Boot incoming!" },
 			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
 			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes },
 			{ VariableName.PunishLimit, 5 },
@@ -169,6 +171,7 @@ namespace PRoConEvents
 		private string _punishedMessage = Defaults[VariableName.PunishedMessage].ToString();
 		private string _forgivenMessage = Defaults[VariableName.ForgivenMessage].ToString();
 		private string _apologizedMessage = Defaults[VariableName.ApologizedMessage].ToString();
+		private string _kickMessage = Defaults[VariableName.KickMessage].ToString();
 		private TimeSpan _punishWindow = (TimeSpan)Defaults[VariableName.PunishWindow];
 		private enumBoolYesNo _hasPunishLimit = (enumBoolYesNo)Defaults[VariableName.HasPunishLimit];
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
@@ -290,6 +293,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.KickMessage, typeof(string), _kickMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToApologizeToMessage, typeof(string), _noOneToApologizeToMessage),
@@ -368,6 +372,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
+				new CPluginVariable(VariableName.KickMessage, typeof(string), _kickMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
 				new CPluginVariable(VariableName.NoOneToApologizeToMessage, typeof(string), _noOneToApologizeToMessage),
@@ -429,6 +434,10 @@ namespace PRoConEvents
 
 				case VariableName.ApologizedMessage:
 					_apologizedMessage = value;
+					break;
+
+				case VariableName.KickMessage:
+					_kickMessage = value;
 					break;
 
 				case VariableName.NoOneToPunishMessage:
@@ -851,8 +860,9 @@ namespace PRoConEvents
 			// Re-set their team kills in case they re-join.
 			_teamKills.RemoveAll(tk => tk.KillerName == player);
 
-			// TODO: Have a setting for this message.
-			AdminSayAll("Too many team kills for " + player + ". Boot incoming!");
+			var message = _kickMessage.Replace("{killer}", player);
+
+			AdminSayAll(message);
 
 			if (IsProtected(player))
 			{
