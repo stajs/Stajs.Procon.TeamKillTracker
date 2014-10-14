@@ -152,6 +152,11 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |Default&nbsp;value|`No one to forgive (auto-forgive after {window} seconds).`|
 |`{window}`|Length (in seconds) of the punish window.|
 
+|No one to apologize to|&nbsp;|
+|:--|:---|
+|Description|Sent to the player who issued a sorry command that was unsuccessful.|
+|Default&nbsp;value|`Apology rejected! No recent kills.`|
+
 |Shame all on round end?|&nbsp;|
 |:--|:---|
 |Description|Should a list of the worst team killers be displayed to all players at the end of the round?|
