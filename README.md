@@ -111,12 +111,13 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |`{punishedCount}`|The number of times the victim has previously punished the killer.|
 |`{forgivenCount}`|The number of times the victim has previously forgiven the killer.|
 |`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
+|`{sorryCount}`|The number of times the killer has apologized to the victim.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
 |Victim|&nbsp;|
 |:--|:---|
 |Description|Sent to the victim when a team kill is detected (one line per message). See note about prefixes above.|
-|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).`<br />- `>Punishes left before kick: {punishesLeft}.`<br />- `<Waiting on more players to join before enabling kick.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
+|Default&nbsp;value|- `TEAM KILLED by {killer}.`<br />- `@TEAM KILLED by {killer}.`<br />- `Their TK's: you ({victimCount}) team ({teamCount}).`<br />- `punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}) sorry ({sorryCount})`<br />- `>Punishes left before kick: {punishesLeft}.`<br />- `<Waiting on more players to join before enabling kick.`<br />- `!p to punish, !f to forgive.`<br />- `@!p to punish, !f to forgive.`|
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 |`{victimCount}`|The number of times the killer has team killed the victim.|
@@ -124,6 +125,7 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |`{punishedCount}`|The number of times the victim has previously punished the killer.|
 |`{forgivenCount}`|The number of times the victim has previously forgiven the killer.|
 |`{autoForgivenCount}`|The number of times the victim has previously auto-forgiven the killer.|
+|`{sorryCount}`|The number of times the killer has apologized to the victim.|
 |`{punishesLeft}`|The number of punishes left before the killer is kicked.|
 
 |Punished|&nbsp;|
