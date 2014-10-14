@@ -12,7 +12,9 @@ namespace PRoConEvents
 	{
 		public static string[] ToArray(this string s)
 		{
-			return s.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+			return CPluginVariable.Decode(s)
+				.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries)
+				.ToArray();
 		}
 
 		public static T ToEnum<T>(this string s)
@@ -36,7 +38,7 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.3.0.0";
+		public const string Version = "3.3.1.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -106,6 +108,7 @@ namespace PRoConEvents
 			public int VictimPunishedKillerCount { get; set; }
 			public int VictimForgivenKillerCount { get; set; }
 			public int VictimAutoForgivenKillerCount { get; set; }
+			public int KillerApologizedToVictimCount { get; set; }
 		}
 
 		#region Defaults
@@ -131,7 +134,7 @@ namespace PRoConEvents
 					"TEAM KILLED by {killer}.",
 					"@TEAM KILLED by {killer}.",
 					"Their TK's: you ({victimCount}) team ({teamCount}).",
-					"You have: punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}).",
+					"punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}) sorry ({sorryCount})",
 					">Punishes left before kick: {punishesLeft}.",
 					"<Waiting on more players to join before enabling kick.",
 					"!p to punish, !f to forgive.",
@@ -288,8 +291,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.AllowKillersToApologizeToAvoidPunishment, typeof(enumBoolYesNo), _allowKillersToApologizeToAvoidPunishment),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string[]), _shameCommand),
-				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages),
+				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages),
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
@@ -349,7 +352,7 @@ namespace PRoConEvents
 
 			var whitelist = new List<CPluginVariable>
 			{
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
+				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist)
 			};
 
 			if (_protect == Protect.Whitelist || _protect == Protect.AdminsAndWhitelist)
@@ -367,8 +370,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.AllowKillersToApologizeToAvoidPunishment, CreateEnumString(typeof(enumBoolYesNo)), _allowKillersToApologizeToAvoidPunishment.ToString()),
 				new CPluginVariable(VariableName.SorryCommand, typeof(string[]), _sorryCommand),
 				new CPluginVariable(VariableName.ShameCommand, typeof(string[]), _shameCommand),
-				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
-				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages),
+				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
 				new CPluginVariable(VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
@@ -384,7 +387,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick),
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
-				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist),
 				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
 				new CPluginVariable(VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
 			};
@@ -607,7 +610,8 @@ namespace PRoConEvents
 				TeamKillsOnVictimCount = victimKillsByKiller.Count(),
 				VictimPunishedKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Punished),
 				VictimForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Forgiven),
-				VictimAutoForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoForgiven)
+				VictimAutoForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoForgiven),
+				KillerApologizedToVictimCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Apologized)
 			};
 		}
 
@@ -671,6 +675,7 @@ namespace PRoConEvents
 					.Replace("{punishedCount}", stats.VictimPunishedKillerCount.ToString())
 					.Replace("{forgivenCount}", stats.VictimForgivenKillerCount.ToString())
 					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString())
+					.Replace("{sorryCount}", stats.KillerApologizedToVictimCount.ToString())
 					.Replace("{punishesLeft}", punishesLeft);
 
 				if (shouldYell)
