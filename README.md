@@ -147,6 +147,12 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |`{killer}`|Player name of killer.|
 |`{victim}`|Player name of victim.|
 
+|Kick|&nbsp;|
+|:--|:---|
+|Description|Sent to all players when a player is kicked for reaching the punish limit.|
+|Default&nbsp;value|`Too many team kills for {killer}. Boot incoming!`|
+|`{killer}`|Player name of killer.|
+
 |No one to punish|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a punish command that was unsuccessful.|
