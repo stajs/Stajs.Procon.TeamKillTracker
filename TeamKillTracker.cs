@@ -74,6 +74,7 @@ namespace PRoConEvents
 		{
 			public const string PunishCommand = "Punish";
 			public const string ForgiveCommand = "Forgive";
+			public const string AllowKillersToApologizeToAvoidPunishmentCommand = "Allow killers to apologize to avoid punishment?";
 			public const string SorryCommand = "Sorry";
 			public const string ShameCommand = "Shame";
 			public const string KillerMessages = "Killer";
@@ -110,6 +111,7 @@ namespace PRoConEvents
 		{
 			{ VariableName.PunishCommand, new [] { "!p", "!punish" } },
 			{ VariableName.ForgiveCommand, new [] { "!f", "!forgive" } },
+			{ VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, enumBoolYesNo.No },
 			{ VariableName.SorryCommand, new [] { "!sorry", "!mybad" } },
 			{ VariableName.ShameCommand, new [] { "!shame" } },
 			{
@@ -152,6 +154,7 @@ namespace PRoConEvents
 
 		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
 		private string[] _forgiveCommand = (string[])Defaults[VariableName.ForgiveCommand];
+		private enumBoolYesNo _allowKillersToApologizeToAvoidPunishmentCommand = (enumBoolYesNo)Defaults[VariableName.AllowKillersToApologizeToAvoidPunishmentCommand];
 		private string[] _sorryCommand = (string[])Defaults[VariableName.SorryCommand];
 		private string[] _shameCommand = (string[])Defaults[VariableName.ShameCommand];
 		private string[] _killerMessages = (string[])Defaults[VariableName.KillerMessages];
@@ -273,7 +276,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Commands + VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
-				new CPluginVariable(VariableGroup.Commands + VariableName.SorryCommand, typeof(string[]), _sorryCommand),
+				new CPluginVariable(VariableGroup.Commands + VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, typeof(enumBoolYesNo), _allowKillersToApologizeToAvoidPunishmentCommand),
 				new CPluginVariable(VariableGroup.Commands + VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableGroup.Messages + VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -289,13 +292,25 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Debug + VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
 			};
 
+			// Sorry
+
+			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.AllowKillersToApologizeToAvoidPunishmentCommand)) + 1;
+
+			var sorry = new List<CPluginVariable>
+			{
+				new CPluginVariable(VariableGroup.Commands + VariableName.SorryCommand, typeof(string[]), _sorryCommand)
+			};
+
+			if (_allowKillersToApologizeToAvoidPunishmentCommand == enumBoolYesNo.Yes)
+				list.InsertRange(insertAt, sorry);
+
 			// Shame
 
-			var insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.ShameAllOnRoundEnd)) + 1;
+			insertAt = list.FindIndex(v => v.Name.EndsWith(VariableName.ShameAllOnRoundEnd)) + 1;
 
 			var shame = new List<CPluginVariable>
 			{
-				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage)
 			};
 
 			if (_shameAllOnRoundEnd == enumBoolYesNo.Yes)
@@ -309,7 +324,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick),
-				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
+				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds)
 			};
 
 			if (_hasPunishLimit == enumBoolYesNo.Yes)
@@ -321,7 +336,7 @@ namespace PRoConEvents
 
 			var whitelist = new List<CPluginVariable>
 			{
-				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
+				new CPluginVariable(VariableGroup.Protection + VariableName.Whitelist, typeof(string[]), _whitelist.Select(s => s = CPluginVariable.Decode(s)).ToArray())
 			};
 
 			if (_protect == Protect.Whitelist || _protect == Protect.AdminsAndWhitelist)
@@ -336,6 +351,7 @@ namespace PRoConEvents
 			{
 				new CPluginVariable(VariableName.PunishCommand, typeof(string[]), _punishCommand),
 				new CPluginVariable(VariableName.ForgiveCommand, typeof(string[]), _forgiveCommand),
+				new CPluginVariable(VariableName.AllowKillersToApologizeToAvoidPunishmentCommand, CreateEnumString(typeof(enumBoolYesNo)), _allowKillersToApologizeToAvoidPunishmentCommand.ToString()),
 				new CPluginVariable(VariableName.SorryCommand, typeof(string[]), _sorryCommand),
 				new CPluginVariable(VariableName.ShameCommand, typeof(string[]), _shameCommand),
 				new CPluginVariable(VariableName.KillerMessages, typeof(string[]), _killerMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
@@ -370,6 +386,10 @@ namespace PRoConEvents
 
 				case VariableName.ForgiveCommand:
 					_forgiveCommand = value.ToArray();
+					break;
+
+				case VariableName.AllowKillersToApologizeToAvoidPunishmentCommand:
+					_allowKillersToApologizeToAvoidPunishmentCommand = value.ToEnum<enumBoolYesNo>();
 					break;
 
 				case VariableName.SorryCommand:
