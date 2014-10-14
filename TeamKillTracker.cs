@@ -81,6 +81,7 @@ namespace PRoConEvents
 			public const string VictimMessages = "Victim";
 			public const string NoOneToPunishMessage = "No one to punish";
 			public const string NoOneToForgiveMessage = "No one to forgive";
+			public const string NoOneToApologizeToMessage = "No one to apologize to";
 			public const string PunishedMessage = "Punished";
 			public const string ForgivenMessage = "Forgiven";
 			public const string ApologizedMessage = "Apologized";
@@ -138,6 +139,7 @@ namespace PRoConEvents
 			},
 			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)." },
 			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)." },
+			{ VariableName.NoOneToApologizeToMessage, "Apology rejected! No recent kills." },
 			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
 			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
 			{ VariableName.ApologizedMessage, "{killer} apologized to {victim}." },
@@ -163,6 +165,7 @@ namespace PRoConEvents
 		private string[] _victimMessages = (string[])Defaults[VariableName.VictimMessages];
 		private string _noOneToPunishMessage = Defaults[VariableName.NoOneToPunishMessage].ToString();
 		private string _noOneToForgiveMessage = Defaults[VariableName.NoOneToForgiveMessage].ToString();
+		private string _noOneToApologizeToMessage = Defaults[VariableName.NoOneToApologizeToMessage].ToString();
 		private string _punishedMessage = Defaults[VariableName.PunishedMessage].ToString();
 		private string _forgivenMessage = Defaults[VariableName.ForgivenMessage].ToString();
 		private string _apologizedMessage = Defaults[VariableName.ApologizedMessage].ToString();
@@ -289,6 +292,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToApologizeToMessage, typeof(string), _noOneToApologizeToMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
 				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
@@ -366,6 +370,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
+				new CPluginVariable(VariableName.NoOneToApologizeToMessage, typeof(string), _noOneToApologizeToMessage),
 				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
 				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
 				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
@@ -432,6 +437,10 @@ namespace PRoConEvents
 
 				case VariableName.NoOneToForgiveMessage:
 					_noOneToForgiveMessage = value;
+					break;
+
+				case VariableName.NoOneToApologizeToMessage:
+					_noOneToApologizeToMessage = value;
 					break;
 
 				case VariableName.ShameAllOnRoundEnd:
@@ -776,9 +785,6 @@ namespace PRoConEvents
 			if (!kills.Any())
 				AdminSayPlayer(victim, _noOneToForgiveMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString()));
 
-			if (kills.Count > 1)
-				WriteConsole("Players found to forgive: " + kills.Count);
-
 			foreach (var kill in kills)
 				Forgive(kill);
 		}
@@ -790,10 +796,7 @@ namespace PRoConEvents
 			var kills = GetPendingTeamKillsForKiller(killer);
 
 			if (!kills.Any())
-				AdminSayPlayer(killer, "Apology rejected! No recent kills."); // TODO: Have a setting for this message.
-
-			if (kills.Count > 1)
-				WriteConsole("Players found to apologize to: " + kills.Count);
+				AdminSayPlayer(killer, _noOneToApologizeToMessage);
 
 			foreach (var kill in kills)
 				Apologize(kill);
