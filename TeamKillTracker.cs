@@ -83,6 +83,7 @@ namespace PRoConEvents
 			public const string NoOneToForgiveMessage = "No one to forgive";
 			public const string PunishedMessage = "Punished";
 			public const string ForgivenMessage = "Forgiven";
+			public const string ApologizedMessage = "Apologized";
 			public const string PunishWindow = "Punish window (seconds)";
 			public const string HasPunishLimit = "Kick after punish limit reached?";
 			public const string PunishLimit = "Punish limit";
@@ -139,6 +140,7 @@ namespace PRoConEvents
 			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)." },
 			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
 			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
+			{ VariableName.ApologizedMessage, "{killer} apologized to {victim}." },
 			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
 			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes },
 			{ VariableName.PunishLimit, 5 },
@@ -163,6 +165,7 @@ namespace PRoConEvents
 		private string _noOneToForgiveMessage = Defaults[VariableName.NoOneToForgiveMessage].ToString();
 		private string _punishedMessage = Defaults[VariableName.PunishedMessage].ToString();
 		private string _forgivenMessage = Defaults[VariableName.ForgivenMessage].ToString();
+		private string _apologizedMessage = Defaults[VariableName.ApologizedMessage].ToString();
 		private TimeSpan _punishWindow = (TimeSpan)Defaults[VariableName.PunishWindow];
 		private enumBoolYesNo _hasPunishLimit = (enumBoolYesNo)Defaults[VariableName.HasPunishLimit];
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
@@ -283,6 +286,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableGroup.Messages + VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
+				new CPluginVariable(VariableGroup.Messages + VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
@@ -359,6 +363,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.VictimMessages, typeof(string[]), _victimMessages.Select(s => s = CPluginVariable.Decode(s)).ToArray()),
 				new CPluginVariable(VariableName.PunishedMessage, typeof(string), _punishedMessage),
 				new CPluginVariable(VariableName.ForgivenMessage, typeof(string), _forgivenMessage),
+				new CPluginVariable(VariableName.ApologizedMessage, typeof(string), _apologizedMessage),
 				new CPluginVariable(VariableName.NoOneToPunishMessage, typeof(string), _noOneToPunishMessage),
 				new CPluginVariable(VariableName.NoOneToForgiveMessage, typeof(string), _noOneToForgiveMessage),
 				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
@@ -415,6 +420,10 @@ namespace PRoConEvents
 
 				case VariableName.ForgivenMessage:
 					_forgivenMessage = value;
+					break;
+
+				case VariableName.ApologizedMessage:
+					_apologizedMessage = value;
 					break;
 
 				case VariableName.NoOneToPunishMessage:
@@ -907,7 +916,7 @@ namespace PRoConEvents
 			var killer = kill.KillerName;
 			var victim = kill.VictimName;
 
-			var message = "{killer} says sorry to {victim}." // TODO: Have a setting for this message.
+			var message = _apologizedMessage
 				.Replace("{killer}", killer)
 				.Replace("{victim}", victim);
 
