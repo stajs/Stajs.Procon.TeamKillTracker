@@ -48,7 +48,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Sorry|&nbsp;|
 |:--|:---|
-|Description|If `Allow killers to apologize to avoid punishment?` is set to `Yes` a killer can avoid punishment with this command.|
+|Description|Allows a killer to avoid punishment.|
 |Default&nbsp;value|- `!sorry`<br />- `!mybad`|
 
 |Shame|&nbsp;|
