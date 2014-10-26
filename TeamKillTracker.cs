@@ -38,7 +38,7 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.3.1.0";
+		public const string Version = "3.3.2.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -244,7 +244,7 @@ namespace PRoConEvents
 
 		public void OnPluginEnable()
 		{
-			_teamKills = new List<TeamKill>();
+			Reset();
 			WriteConsole("^2Enabled.^0");
 		}
 
@@ -555,7 +555,7 @@ namespace PRoConEvents
 
 		public override void OnLevelLoaded(string mapFileName, string gamemode, int roundsPlayed, int roundsTotal)
 		{
-			_teamKills = new List<TeamKill>();
+			Reset();
 		}
 
 		public override void OnRoundOver(int winningTeamId)
@@ -569,6 +569,12 @@ namespace PRoConEvents
 		}
 
 		#endregion
+
+		private void Reset()
+		{
+			_teamKills = new List<TeamKill>();
+			_kickedPlayers = new List<TeamKiller>();
+		}
 
 		private void AutoForgive(string killer, string victim)
 		{
