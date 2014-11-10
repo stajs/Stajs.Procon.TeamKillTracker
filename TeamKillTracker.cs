@@ -38,7 +38,7 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.3.2.0";
+		public const string Version = "3.4.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -99,6 +99,7 @@ namespace PRoConEvents
 			public const string NoOneToShameMessage = "No one to shame message";
 			public const string ShouldSuicideCountAsATeamKill = "Should suicide count as a team kill?";
 			public const string OutputToChat = "Output to Chat";
+			public const string UseAdKats = "Use AdKats";
 		}
 
 		private class Stats
@@ -159,6 +160,7 @@ namespace PRoConEvents
 			{ VariableName.NoOneToShameMessage, "No team kills so far..." },
 			{ VariableName.ShouldSuicideCountAsATeamKill, enumBoolYesNo.No },
 			{ VariableName.OutputToChat, Chat.SayAndYell },
+			{ VariableName.UseAdKats, enumBoolYesNo.No },
 		};
 
 		private string[] _punishCommand = (string[])Defaults[VariableName.PunishCommand];
@@ -186,6 +188,7 @@ namespace PRoConEvents
 		private string _noOneToShameMessage = Defaults[VariableName.NoOneToShameMessage].ToString();
 		private enumBoolYesNo _shouldSuicideCountAsATeamKill = (enumBoolYesNo)Defaults[VariableName.ShouldSuicideCountAsATeamKill];
 		private Chat _outputToChat = (Chat)Defaults[VariableName.OutputToChat];
+		private enumBoolYesNo _useAdKats = (enumBoolYesNo)Defaults[VariableName.UseAdKats];
 
 		private List<TeamKill> _teamKills = new List<TeamKill>();
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
@@ -280,7 +283,11 @@ namespace PRoConEvents
 
 		public string GetPluginDescription()
 		{
-			return GetDescriptionHtml();
+			return @"
+<h2>Description</h2>
+<p>Track team kill statistics and allow victims to punish their killers.</p>
+<p>See project site for full documentation: <a href=""https://github.com/stajs/Stajs.Procon.TeamKillTracker"" target=""_blank"">https://github.com/stajs/Stajs.Procon.TeamKillTracker</a></p>
+";
 		}
 
 		public List<CPluginVariable> GetDisplayPluginVariables()
@@ -306,7 +313,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(enumBoolYesNo)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
-				new CPluginVariable(VariableGroup.Debug + VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
+				new CPluginVariable(VariableGroup.Debug + VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString()),
+				new CPluginVariable(VariableGroup.Protection + VariableName.UseAdKats, typeof(enumBoolYesNo), _useAdKats, IsAdKatsAvailable()),
 			};
 
 			// Sorry
@@ -389,14 +397,15 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableName.Whitelist, typeof(string[]), _whitelist),
 				new CPluginVariable(VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
-				new CPluginVariable(VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString())
+				new CPluginVariable(VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString()),
+				new CPluginVariable(VariableName.UseAdKats, typeof(enumBoolYesNo), _useAdKats)
 			};
 		}
 
 		public void SetPluginVariable(string variable, string value)
 		{
 			int i;
-
+			
 			switch (variable)
 			{
 				case VariableName.PunishCommand:
@@ -530,6 +539,14 @@ namespace PRoConEvents
 
 				case VariableName.OutputToChat:
 					_outputToChat = value.ToEnum<Chat>();
+					break;
+
+				case VariableName.UseAdKats:
+					_useAdKats = value.ToEnum<enumBoolYesNo>();
+					
+					if (_useAdKats == enumBoolYesNo.Yes && !IsAdKatsAvailable())
+						WriteConsole("^8\"Use AdKats\" is \"Yes\", but AdKats is either not enabled or not yet fully initialized.^0");
+
 					break;
 			}
 		}
@@ -993,6 +1010,18 @@ namespace PRoConEvents
 			return "Worst team killers: " + sb;
 		}
 
+		private bool IsAdKatsAvailable()
+		{
+			//// For debugging.
+			//var commands = GetRegisteredCommands();
+			//WriteConsole("Checking registered commands.");
+			//for (int i = 0; i < commands.Count; i++)
+			//	WriteConsole(string.Format("[{0}] Class: {1}, Method: {2}", i, commands[i].RegisteredClassname, commands[i].RegisteredMethodName));
+
+			return GetRegisteredCommands()
+				.Any(command => command.RegisteredClassname == "AdKats" && command.RegisteredMethodName == "IssueCommand");
+		}
+
 		private void ShameAll()
 		{
 			if (_shameAllOnRoundEnd == enumBoolYesNo.No)
@@ -1064,15 +1093,6 @@ namespace PRoConEvents
 
 			if (_outputToChat == Chat.Yell || _outputToChat == Chat.SayAndYell)
 				ExecuteCommand("procon.protected.tasks.add", "TeamKillTracker", delay.ToString(), "1", "1", "procon.protected.chat.write", "TeamKillTracker > Yell > " + player + ": " + message);
-		}
-
-		public string GetDescriptionHtml()
-		{
-			return @"
-<h2>Description</h2>
-<p>Track team kill statistics and allow victims to punish their killers.</p>
-<p>See project site for full documentation: <a href=""https://github.com/stajs/Stajs.Procon.TeamKillTracker"" target=""_blank"">https://github.com/stajs/Stajs.Procon.TeamKillTracker</a></p>
-";
 		}
 	}
 }
