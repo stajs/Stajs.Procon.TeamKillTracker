@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -209,6 +210,7 @@ namespace PRoConEvents
 		private class TeamKill
 		{
 			public string KillerName { get; set; }
+			public string KillerGuid { get; set; }
 			public string VictimName { get; set; }
 			public DateTime At { get; set; }
 			public TeamKillStatus Status { get; set; }
@@ -314,7 +316,7 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
 				new CPluginVariable(VariableGroup.Debug + VariableName.OutputToChat, CreateEnumString(typeof(Chat)), _outputToChat.ToString()),
-				new CPluginVariable(VariableGroup.Protection + VariableName.UseAdKats, typeof(enumBoolYesNo), _useAdKats, IsAdKatsAvailable()),
+				new CPluginVariable(VariableGroup.Protection + VariableName.UseAdKats, typeof(enumBoolYesNo), _useAdKats),
 			};
 
 			// Sorry
@@ -405,7 +407,7 @@ namespace PRoConEvents
 		public void SetPluginVariable(string variable, string value)
 		{
 			int i;
-			
+
 			switch (variable)
 			{
 				case VariableName.PunishCommand:
@@ -543,7 +545,7 @@ namespace PRoConEvents
 
 				case VariableName.UseAdKats:
 					_useAdKats = value.ToEnum<enumBoolYesNo>();
-					
+
 					if (_useAdKats == enumBoolYesNo.Yes && !IsAdKatsAvailable())
 						WriteConsole("^8\"Use AdKats\" is \"Yes\", but AdKats is either not enabled or not yet fully initialized.^0");
 
@@ -749,6 +751,7 @@ namespace PRoConEvents
 			_teamKills.Add(new TeamKill
 			{
 				KillerName = killerName,
+				KillerGuid = kill.Killer.GUID,
 				VictimName = victimName,
 				At = DateTime.UtcNow,
 				Status = TeamKillStatus.Pending
@@ -916,7 +919,10 @@ namespace PRoConEvents
 			var killer = kill.KillerName;
 			var victim = kill.VictimName;
 
-			if (ShouldKick(killer))
+			if (_useAdKats == enumBoolYesNo.Yes && !IsAdKatsAvailable())
+				WriteConsole(string.Format("^8\"Use AdKats\" is \"Yes\", but AdKats is either not enabled or not yet fully initialized. Can not record punishment of {0} for teamkilling {1}.^0", killer, victim));
+
+			if ((_useAdKats == enumBoolYesNo.No || !IsAdKatsAvailable()) && ShouldKick(killer))
 			{
 				Kick(killer);
 				return;
@@ -926,15 +932,40 @@ namespace PRoConEvents
 				.Replace("{killer}", killer)
 				.Replace("{victim}", victim);
 
-			AdminSayPlayer(killer, message);
+			if (_useAdKats == enumBoolYesNo.No || !IsAdKatsAvailable())
+				AdminSayPlayer(killer, message);
+
 			AdminSayPlayer(victim, message);
 
 			kill.Status = TeamKillStatus.Punished;
 
 			if (IsProtected(killer))
+			{
 				AdminSayPlayer(killer, "Protected from kill.");
-			else
+				return;
+			}
+
+			if (_useAdKats == enumBoolYesNo.No || !IsAdKatsAvailable())
+			{
 				ExecuteCommand("procon.protected.send", "admin.killPlayer", killer);
+				return;
+			}
+
+			// AdKats reference:
+			// AdminSayMessage(record.target_name + " was PUNISHED by " + record.source_name + " for " + record.record_message);
+
+			var command = new Hashtable
+			{
+				{"caller_identity", "TeamKillTracker"},
+				{"response_requested", false},
+				{"command_type", "player_punish"},
+				{"target_name", killer},
+				{"target_guid", kill.KillerGuid},
+				{"source_name", victim},
+				{"record_message", "teamkilling."}
+			};
+
+			ExecuteCommand("procon.protected.plugins.call", "AdKats", "IssueCommand", "TeamKillTracker", JSON.JsonEncode(command));
 		}
 
 		private void Forgive(TeamKill kill)
@@ -1012,12 +1043,6 @@ namespace PRoConEvents
 
 		private bool IsAdKatsAvailable()
 		{
-			//// For debugging.
-			//var commands = GetRegisteredCommands();
-			//WriteConsole("Checking registered commands.");
-			//for (int i = 0; i < commands.Count; i++)
-			//	WriteConsole(string.Format("[{0}] Class: {1}, Method: {2}", i, commands[i].RegisteredClassname, commands[i].RegisteredMethodName));
-
 			return GetRegisteredCommands()
 				.Any(command => command.RegisteredClassname == "AdKats" && command.RegisteredMethodName == "IssueCommand");
 		}
