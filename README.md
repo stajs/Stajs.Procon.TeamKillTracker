@@ -12,6 +12,7 @@ Track team kill statistics and allow self-management of team killers.
 - Optionally allow killers to apologize to avoid punishment.
 - Optionally protect admins or whitelisted players from being punished.
 - Shame the worst team killers at the end of the round or on demand.
+- Integration with [AdKats](https://github.com/AdKats/AdKats).
 
 ## Install
 
@@ -63,7 +64,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 |Description|Useful for testing other plugin settings and messages. Allows a player to trigger a "team kill" by suiciding.|
 |Default&nbsp;value|`No`|
 
-|Trace level|&nbsp;|
+|Output to Chat|&nbsp;|
 |:--|:---|
 |Description|Determines what messages (if any) should appear in the Procon `Chat` tab.|
 |Default&nbsp;value|`SayAndYell`|
@@ -197,3 +198,8 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |Whitelist|&nbsp;|
 |:--|:---|
 |Description|A list of players (one per line) that are protected from punishment.|
+
+|Use AdKats|&nbsp;|
+|:--|:---|
+|Description|Should punishment be handed off to AdKats to handle. This (obviously) requires a working installation of [AdKats](https://github.com/AdKats/AdKats) and only hands off to AdKats once it is fully initialized and ready to receive commands.|
+|Default&nbsp;value|`No`|
