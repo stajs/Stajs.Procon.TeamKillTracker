@@ -961,8 +961,8 @@ namespace PRoConEvents
 				{"command_type", "player_punish"},
 				{"target_name", killer},
 				{"target_guid", kill.KillerGuid},
-				{"source_name", victim},
-				{"record_message", "teamkilling."}
+				{"source_name", "TeamKillTracker"},
+				{"record_message", "teamkilling " + victim}
 			};
 
 			ExecuteCommand("procon.protected.plugins.call", "AdKats", "IssueCommand", "TeamKillTracker", JSON.JsonEncode(command));
