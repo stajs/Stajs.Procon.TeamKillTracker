@@ -39,7 +39,7 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.4.0.0";
+		public const string Version = "3.5.0.0";
 
 		private const int PunishWindowMin = 20;
 		private const int PunishWindowMax = 120;
@@ -53,7 +53,9 @@ namespace PRoConEvents
 			NoOne,
 			Admins,
 			Whitelist,
-			AdminsAndWhitelist
+			AdminsAndWhitelist,
+			Reserved,
+			AdminsAndReserved
 		}
 
 		private enum Chat
@@ -195,6 +197,7 @@ namespace PRoConEvents
 		private List<TeamKiller> _kickedPlayers = new List<TeamKiller>();
 
 		private int? _playerCount = null;
+		private List<string> _reservedSlots = new List<string>();
 
 		#endregion
 
@@ -241,7 +244,8 @@ namespace PRoConEvents
 				"OnGlobalChat",
 				"OnTeamChat",
 				"OnSquadChat",
-				"OnListPlayers"
+				"OnListPlayers",
+				"OnReservedSlotsList"
 			};
 
 			this.RegisterEvents(this.GetType().Name, events);
@@ -261,6 +265,14 @@ namespace PRoConEvents
 		{
 			if (cpsSubset.Subset == CPlayerSubset.PlayerSubsetType.All)
 				_playerCount = players.Count;
+		}
+
+		public override void OnReservedSlotsList(List<string> soldierNames)
+		{
+			if (soldierNames == null)
+				return;
+
+			_reservedSlots = soldierNames;
 		}
 
 		public string GetPluginName()
@@ -858,6 +870,11 @@ namespace PRoConEvents
 			return _whitelist.Any(p => p == player);
 		}
 
+		private bool IsReserved(string player)
+		{
+			return _reservedSlots.Any(p => p == player);
+		}
+
 		private bool IsProtected(string player)
 		{
 			if (player == Author || player == AuthorAlt)
@@ -873,6 +890,12 @@ namespace PRoConEvents
 
 				case Protect.AdminsAndWhitelist:
 					return IsAdmin(player) || IsWhitelisted(player);
+
+				case Protect.Reserved:
+					return IsReserved(player);
+
+				case Protect.AdminsAndReserved:
+					return IsAdmin(player) || IsReserved(player);
 
 				default: // No one is protected.
 					return false;
