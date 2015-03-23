@@ -39,10 +39,10 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.5.0.0";
+		public const string Version = "3.6.0.0";
 
-		private const int PunishWindowMin = 20;
-		private const int PunishWindowMax = 120;
+		private const int VictimWindowMin = 1;
+		private const int VictimWindowMax = 120;
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
 		private const int PlayerCountThresholdForKickMin = 1;
@@ -64,6 +64,12 @@ namespace PRoConEvents
 			Say,
 			Yell,
 			SayAndYell
+		}
+
+		private enum Action
+		{
+			Forgive,
+			Punish
 		}
 
 		private struct VariableGroup
@@ -91,7 +97,8 @@ namespace PRoConEvents
 			public const string ForgivenMessage = "Forgiven";
 			public const string ApologizedMessage = "Apologized";
 			public const string KickMessage = "Kick";
-			public const string PunishWindow = "Punish window (seconds)";
+			public const string VictimWindow = "Victim window before auto-action (seconds)";
+			public const string AutoAction = "Auto-action";
 			public const string HasPunishLimit = "Kick after punish limit reached?";
 			public const string PunishLimit = "Punish limit";
 			public const string PlayerCountThresholdForKick = "Player count threshold for kick";
@@ -112,6 +119,7 @@ namespace PRoConEvents
 			public int VictimPunishedKillerCount { get; set; }
 			public int VictimForgivenKillerCount { get; set; }
 			public int VictimAutoForgivenKillerCount { get; set; }
+			public int VictimAutoPunishedKillerCount { get; set; }
 			public int KillerApologizedToVictimCount { get; set; }
 		}
 
@@ -138,21 +146,22 @@ namespace PRoConEvents
 					"TEAM KILLED by {killer}.",
 					"@TEAM KILLED by {killer}.",
 					"Their TK's: you ({victimCount}) team ({teamCount}).",
-					"punished ({punishedCount}) forgiven ({forgivenCount}) auto-forgiven ({autoForgivenCount}) sorry ({sorryCount})",
+					"punished ({punishedCount}) forgiven ({forgivenCount}) auto-punished ({autoPunishedCount}) auto-forgiven ({autoForgivenCount}) sorry ({sorryCount})",
 					">Punishes left before kick: {punishesLeft}.",
 					"<Waiting on more players to join before enabling kick.",
 					"!p to punish, !f to forgive.",
 					"@!p to punish, !f to forgive."
 				}
 			},
-			{ VariableName.NoOneToPunishMessage, "No one to punish (auto-forgive after {window} seconds)." },
-			{ VariableName.NoOneToForgiveMessage, "No one to forgive (auto-forgive after {window} seconds)." },
+			{ VariableName.NoOneToPunishMessage, "No one to punish ({window} second window)." },
+			{ VariableName.NoOneToForgiveMessage, "No one to forgive ({window} second window)." },
 			{ VariableName.NoOneToApologizeToMessage, "Apology rejected! No recent kills." },
 			{ VariableName.PunishedMessage, "{killer} punished by {victim}." },
 			{ VariableName.ForgivenMessage, "{killer} forgiven by {victim}." },
 			{ VariableName.ApologizedMessage, "{killer} apologized to {victim}." },
 			{ VariableName.KickMessage, "Too many team kills for {killer}. Boot incoming!" },
-			{ VariableName.PunishWindow, TimeSpan.FromSeconds(45) },
+			{ VariableName.VictimWindow, TimeSpan.FromSeconds(45) },
+			{ VariableName.AutoAction, Action.Forgive },
 			{ VariableName.HasPunishLimit, enumBoolYesNo.Yes },
 			{ VariableName.PunishLimit, 5 },
 			{ VariableName.PlayerCountThresholdForKick, 1 },
@@ -180,7 +189,8 @@ namespace PRoConEvents
 		private string _forgivenMessage = Defaults[VariableName.ForgivenMessage].ToString();
 		private string _apologizedMessage = Defaults[VariableName.ApologizedMessage].ToString();
 		private string _kickMessage = Defaults[VariableName.KickMessage].ToString();
-		private TimeSpan _punishWindow = (TimeSpan)Defaults[VariableName.PunishWindow];
+		private TimeSpan _victimWindow = (TimeSpan)Defaults[VariableName.VictimWindow];
+		private Action _autoAction = (Action)Defaults[VariableName.AutoAction];
 		private enumBoolYesNo _hasPunishLimit = (enumBoolYesNo)Defaults[VariableName.HasPunishLimit];
 		private int _punishLimit = (int)Defaults[VariableName.PunishLimit];
 		private int _playerCountThresholdForKick = (int)Defaults[VariableName.PlayerCountThresholdForKick];
@@ -207,6 +217,7 @@ namespace PRoConEvents
 			Punished,
 			Forgiven,
 			AutoForgiven,
+			AutoPunished,
 			Apologized
 		}
 
@@ -265,6 +276,9 @@ namespace PRoConEvents
 		{
 			if (cpsSubset.Subset == CPlayerSubset.PlayerSubsetType.All)
 				_playerCount = players.Count;
+
+			if (_autoAction == Action.Punish)
+				AutoPunishPastVictimWindow();
 		}
 
 		public override void OnReservedSlotsList(List<string> soldierNames)
@@ -323,7 +337,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToApologizeToMessage, typeof(string), _noOneToApologizeToMessage),
 				new CPluginVariable(VariableGroup.Messages + VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
 				new CPluginVariable(VariableGroup.Messages + VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
-				new CPluginVariable(VariableGroup.Limits + VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
+				new CPluginVariable(VariableGroup.Limits + VariableName.VictimWindow, typeof(int), _victimWindow.TotalSeconds),
+				new CPluginVariable(VariableGroup.Limits + VariableName.AutoAction, CreateEnumString(typeof(Action)), _autoAction.ToString()),
 				new CPluginVariable(VariableGroup.Limits + VariableName.HasPunishLimit, CreateEnumString(typeof(enumBoolYesNo)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableGroup.Protection + VariableName.Protected, CreateEnumString(typeof(Protect)), _protect.ToString()),
 				new CPluginVariable(VariableGroup.Debug + VariableName.ShouldSuicideCountAsATeamKill, typeof(enumBoolYesNo), _shouldSuicideCountAsATeamKill),
@@ -404,7 +419,8 @@ namespace PRoConEvents
 				new CPluginVariable(VariableName.ShameAllOnRoundEnd, typeof(enumBoolYesNo), _shameAllOnRoundEnd),
 				new CPluginVariable(VariableName.NoOneToShameOnRoundEndMessage, typeof(string), _noOneToShameOnRoundEndMessage),
 				new CPluginVariable(VariableName.NoOneToShameMessage, typeof(string), _noOneToShameMessage),
-				new CPluginVariable(VariableName.PunishWindow, typeof(int), _punishWindow.TotalSeconds),
+				new CPluginVariable(VariableName.VictimWindow, typeof(int), _victimWindow.TotalSeconds),
+				new CPluginVariable(VariableName.AutoAction, CreateEnumString(typeof(Action)), _protect.ToString()),
 				new CPluginVariable(VariableName.HasPunishLimit, CreateEnumString(typeof(enumBoolYesNo)), _hasPunishLimit.ToString()),
 				new CPluginVariable(VariableName.PunishLimit, typeof(int), _punishLimit),
 				new CPluginVariable(VariableName.PlayerCountThresholdForKick, typeof(int), _playerCountThresholdForKick),
@@ -490,19 +506,23 @@ namespace PRoConEvents
 					_noOneToShameMessage = value;
 					break;
 
-				case VariableName.PunishWindow:
+				case VariableName.VictimWindow:
 
 					if (!int.TryParse(value, out i))
 						return;
 
-					if (i < PunishWindowMin)
-						i = PunishWindowMin;
+					if (i < VictimWindowMin)
+						i = VictimWindowMin;
 
-					if (i > PunishWindowMax)
-						i = PunishWindowMax;
+					if (i > VictimWindowMax)
+						i = VictimWindowMax;
 
-					_punishWindow = TimeSpan.FromSeconds(i);
+					_victimWindow = TimeSpan.FromSeconds(i);
 
+					break;
+
+				case VariableName.AutoAction:
+					_autoAction = value.ToEnum<Action>();
 					break;
 
 				case VariableName.HasPunishLimit:
@@ -648,6 +668,7 @@ namespace PRoConEvents
 				VictimPunishedKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Punished),
 				VictimForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Forgiven),
 				VictimAutoForgivenKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoForgiven),
+				VictimAutoPunishedKillerCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.AutoPunished),
 				KillerApologizedToVictimCount = victimKillsByKiller.Count(tk => tk.Status == TeamKillStatus.Apologized)
 			};
 		}
@@ -712,6 +733,7 @@ namespace PRoConEvents
 					.Replace("{punishedCount}", stats.VictimPunishedKillerCount.ToString())
 					.Replace("{forgivenCount}", stats.VictimForgivenKillerCount.ToString())
 					.Replace("{autoForgivenCount}", stats.VictimAutoForgivenKillerCount.ToString())
+					.Replace("{autoPunishedCount}", stats.VictimAutoPunishedKillerCount.ToString())
 					.Replace("{sorryCount}", stats.KillerApologizedToVictimCount.ToString())
 					.Replace("{punishesLeft}", punishesLeft);
 
@@ -788,12 +810,27 @@ namespace PRoConEvents
 				ApologizeToVictimsOf(player);
 		}
 
-		private void AutoForgivePastPunishWindow()
+		private void AutoPunishPastVictimWindow()
 		{
-			var punishWindowStart = DateTime.UtcNow.Add(_punishWindow.Negate());
+			var windowStart = DateTime.UtcNow.Add(_victimWindow.Negate());
+
+			var kills = _teamKills
+				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.At < windowStart)
+				.ToList();
+
+			foreach (var kill in kills)
+				Punish(kill);
 
 			_teamKills
-				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.At < punishWindowStart)
+				.ForEach(tk => tk.Status = TeamKillStatus.AutoPunished);
+		}
+
+		private void AutoForgivePastVictimWindow()
+		{
+			var windowStart = DateTime.UtcNow.Add(_victimWindow.Negate());
+
+			_teamKills
+				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.At < windowStart)
 				.ToList()
 				.ForEach(tk => tk.Status = TeamKillStatus.AutoForgiven);
 		}
@@ -814,12 +851,12 @@ namespace PRoConEvents
 
 		private void PunishKillerOf(string victim)
 		{
-			AutoForgivePastPunishWindow();
+			AutoForgivePastVictimWindow();
 
 			var kills = GetPendingTeamKillsForVictim(victim);
 
 			if (!kills.Any())
-				AdminSayPlayer(victim, _noOneToPunishMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString()));
+				AdminSayPlayer(victim, _noOneToPunishMessage.Replace("{window}", _victimWindow.TotalSeconds.ToString()));
 
 			if (kills.Count > 1)
 				WriteConsole("Players found to punish: " + kills.Count);
@@ -830,12 +867,12 @@ namespace PRoConEvents
 
 		private void ForgiveKillerOf(string victim)
 		{
-			AutoForgivePastPunishWindow();
+			AutoForgivePastVictimWindow();
 
 			var kills = GetPendingTeamKillsForVictim(victim);
 
 			if (!kills.Any())
-				AdminSayPlayer(victim, _noOneToForgiveMessage.Replace("{window}", _punishWindow.TotalSeconds.ToString()));
+				AdminSayPlayer(victim, _noOneToForgiveMessage.Replace("{window}", _victimWindow.TotalSeconds.ToString()));
 
 			foreach (var kill in kills)
 				Forgive(kill);
@@ -843,7 +880,7 @@ namespace PRoConEvents
 
 		private void ApologizeToVictimsOf(string killer)
 		{
-			AutoForgivePastPunishWindow();
+			AutoForgivePastVictimWindow();
 
 			var kills = GetPendingTeamKillsForKiller(killer);
 
@@ -951,7 +988,11 @@ namespace PRoConEvents
 				return;
 			}
 
-			var message = _punishedMessage
+			var message = _autoAction == Action.Punish
+				? "{killer} auto-punished."
+				: _punishedMessage;
+
+			message = message
 				.Replace("{killer}", killer)
 				.Replace("{victim}", victim);
 
