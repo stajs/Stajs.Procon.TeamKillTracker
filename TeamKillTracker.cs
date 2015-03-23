@@ -39,9 +39,9 @@ namespace PRoConEvents
 	{
 		public const string Author = "stajs";
 		public const string AuthorAlt = "-KiT-stajs";
-		public const string Version = "3.6.0.0";
+		public const string Version = "4.0.0.0";
 
-		private const int VictimWindowMin = 1;
+		private const int VictimWindowMin = 20;
 		private const int VictimWindowMax = 120;
 		private const int PunishLimitMin = 1;
 		private const int PunishLimitMax = 20;
