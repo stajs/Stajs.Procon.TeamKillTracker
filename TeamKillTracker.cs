@@ -640,7 +640,7 @@ namespace PRoConEvents
 			if (_hasPunishLimit == enumBoolYesNo.No)
 				return null;
 
-			var totalPunishCount = GetAllTeamKillsByPlayer(player).Count(tk => tk.Status == TeamKillStatus.Punished);
+			var totalPunishCount = GetAllTeamKillsByPlayer(player).Count(tk => tk.Status == TeamKillStatus.Punished || tk.Status == TeamKillStatus.AutoPunished);
 			var punishesLeft = _punishLimit - totalPunishCount;
 
 			return punishesLeft < 1 ? 1 : punishesLeft;
@@ -818,10 +818,13 @@ namespace PRoConEvents
 				.Where(tk => tk.Status == TeamKillStatus.Pending && tk.At < windowStart)
 				.ToList();
 
+			if (!kills.Any())
+				return;
+
 			foreach (var kill in kills)
 				Punish(kill);
 
-			_teamKills
+			kills
 				.ForEach(tk => tk.Status = TeamKillStatus.AutoPunished);
 		}
 
