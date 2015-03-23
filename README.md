@@ -24,7 +24,7 @@ Track team kill statistics and allow self-management of team killers.
 
 ### Compatibility
 
-This plugin has only been tested against BF4. It is reported to work with [BF3](https://forum.myrcon.com/showthread.php?8690-Team-Kill-Tracker&p=109517&viewfull=1#post109517) and _may_ work for other games.
+This plugin has only been tested against BF4. It is reported to work with [BF3](https://forum.myrcon.com/showthread.php?8690-Team-Kill-Tracker&p=109517&viewfull=1#post109517) and [Hardline](https://forum.myrcon.com/showthread.php?8690-Team-Kill-Tracker-(3-5-0)-12-Dec-2014&p=119082&viewfull=1#post119082) and _may_ work for other games.
 
 ## Settings
 
