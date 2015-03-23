@@ -71,10 +71,15 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 ### Limits
 
-|Punish window (seconds)|&nbsp;|
+|Victim window before auto-action (seconds)|&nbsp;|
 |:--|:---|
-|Description|How long (in seconds) to allow a victim to punish or forgive before the killer is auto-forgiven.<br />Minimum: 20<br />Maximum: 120|
+|Description|How long (in seconds) to allow a victim to apply an action to their killer before an auto-action is applied.<br />Minimum: 20<br />Maximum: 120|
 |Default&nbsp;value|`45`|
+
+|Auto-action (seconds)|&nbsp;|
+|:--|:---|
+|Description|What should happen to the killer after the victim action window expires.|
+|Default&nbsp;value|`Forgiven`|
 
 |Kick after punish limit reached?|&nbsp;|
 |:--|:---|
