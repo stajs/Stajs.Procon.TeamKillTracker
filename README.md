@@ -164,13 +164,13 @@ For `Killer` and `Victim` messages, the following prefixes may be used.
 |No one to punish|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a punish command that was unsuccessful.|
-|Default&nbsp;value|`No one to punish (auto-forgive after {window} seconds).`|
+|Default&nbsp;value|`No one to punish ({window} second window).`|
 |`{window}`|Length (in seconds) of the punish window.|
 
 |No one to forgive|&nbsp;|
 |:--|:---|
 |Description|Sent to the player who issued a forgive command that was unsuccessful.|
-|Default&nbsp;value|`No one to forgive (auto-forgive after {window} seconds).`|
+|Default&nbsp;value|`No one to forgive ({window} second window).`|
 |`{window}`|Length (in seconds) of the punish window.|
 
 |No one to apologize to|&nbsp;|
