@@ -73,10 +73,10 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Victim window before auto-action (seconds)|&nbsp;|
 |:--|:---|
-|Description|How long (in seconds) to allow a victim to apply an action to their killer before an auto-action is applied.<br />Minimum: 20<br />Maximum: 120|
+|Description|How long (in seconds) to allow a victim to apply an action to their killer before an auto-action is applied. The method used to check for punish actions is updated every ~30 seconds so the actual window may be ~30 seconds longer than specified.<br />Minimum: 20<br />Maximum: 120|
 |Default&nbsp;value|`45`|
 
-|Auto-action (seconds)|&nbsp;|
+|Auto-action|&nbsp;|
 |:--|:---|
 |Description|What should happen to the killer after the victim action window expires.|
 |Default&nbsp;value|`Forgiven`|
@@ -88,7 +88,7 @@ Commands are case-insensitive and can be issued in global, team, or squad chat. 
 
 |Player count threshold for kick|&nbsp;|
 |:--|:---|
-|Description|How many players are required before kicking is active. The method used to count the players is updated every 30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 64|
+|Description|How many players are required before kicking is active. The method used to count the players is updated every ~30 seconds and includes players joining, but not yet visible in game.<br />Minimum: 1<br />Maximum: 64|
 |Default&nbsp;value|`1`|
 
 |Punish limit|&nbsp;|
